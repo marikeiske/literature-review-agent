@@ -71,10 +71,6 @@ Na interface, a aba **Revisar** mostra um item por vez, com a página da fonte a
 - **Negativas:** a resposta do agente confere com a esperada? Confere, Parcial ou Não confere,
   com observação. Grava em `resultados/revisao_<rodada>.csv`.
 
-No gabarito, cada cartão traz a **pré-conferência do Claude**: uma sugestão (aprovar ou corrigir),
-o trecho literal da página que sustenta a afirmação, grifado na página ao lado, e uma observação
-quando há nuance. É rascunho: só a sua decisão é gravada. O filtro "Claude sugere corrigir"
-mostra os casos em que ele propõe outra página.
 
 Teclas 1, 2 e 3 decidem; as setas navegam. Cada decisão fica com data e hora. Para anexar ao
 artigo, `python revisar_negativas.py` exporta a revisão das negativas para planilha.
