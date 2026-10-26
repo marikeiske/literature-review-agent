@@ -255,6 +255,7 @@ function barraDecisao(job, rodada) {
   };
   const corrigir = el("button", { type: "button", class: "botao-secundario" }, "Pedir correção");
   barra.append(
+    el("p", { class: "decisao-legenda" }, "Sua decisão: só o que você aprovar vai para os fichamentos. O que decidir fica no histórico."),
     el("button", { type: "button", class: "botao-principal", onclick: () => decidir("aprovar") }, "Aprovar e salvar"),
     corrigir,
     el("button", { type: "button", class: "botao-secundario botao-rejeitar", onclick: () => decidir("rejeitar") }, "Rejeitar"));
@@ -271,6 +272,91 @@ function barraDecisao(job, rodada) {
     campo.focus();
   });
   return barra;
+}
+
+// ---------------- histórico (perguntas anteriores, lidas dos logs) ----------------
+const DECISOES = {
+  aprovar: { rotulo: "Salvo no fichamento", classe: "chip-ok" },
+  rejeitar: { rotulo: "Rejeitado", classe: "chip-erro" },
+  corrigir: { rotulo: "Correção pedida", classe: "chip-meio" },
+  "": { rotulo: "Sem decisão", classe: "" },
+};
+
+function mostrarHistorico(sim) {
+  $("#historico").hidden = !sim;
+  $("#conversa").hidden = sim;
+  $("#form").hidden = sim;
+  $("#ver-historico").setAttribute("aria-pressed", String(sim));
+  $("#ver-historico").textContent = sim ? "Voltar à conversa" : "Histórico";
+  if (sim) listarHistorico();
+}
+
+function dataHora(iso) {
+  const d = new Date(iso);
+  return isNaN(d) ? iso : d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+
+async function listarHistorico() {
+  const h = $("#historico");
+  h.innerHTML = "";
+  h.append(el("p", { class: "hist-carregando" }, "Carregando…"));
+  let conversas;
+  try {
+    ({ conversas } = await api("/api/historico"));
+  } catch (e) {
+    h.innerHTML = "";
+    return h.append(el("p", { class: "erro" }, `Não consegui ler o histórico: ${e.message}`));
+  }
+  h.innerHTML = "";
+  h.append(el("h2", { class: "hist-titulo" }, "Perguntas anteriores"),
+    el("p", { class: "hist-sub" }, `${conversas.length} perguntas feitas nesta interface, da mais recente para a mais antiga. Abrir uma delas só mostra; nada é enviado de novo ao modelo.`));
+  if (!conversas.length) return h.append(el("p", { class: "rev-vazio" }, "Nenhuma pergunta ainda."));
+  const lista = el("ul", { class: "hist-lista" });
+  for (const c of conversas) {
+    const d = DECISOES[c.decisao] || DECISOES[""];
+    const b = el("button", { type: "button", class: "hist-item" },
+      el("span", { class: "hist-meta" }, `${dataHora(c.quando)} · ${c.modelo.split(":").slice(1).join(":")}`),
+      el("span", { class: "hist-pergunta" }, (c.correcao ? "Correção: " : "") + c.pergunta),
+      el("span", { class: "hist-chips" },
+        el("span", { class: `chip ${d.classe}` }, d.rotulo),
+        c.resumo ? el("span", { class: "chip" }, c.resumo) : ""));
+    b.addEventListener("click", () => abrirHistorico(c.id));
+    lista.append(el("li", {}, b));
+  }
+  h.append(lista);
+}
+
+async function abrirHistorico(id) {
+  const h = $("#historico");
+  let it;
+  try {
+    it = await api(`/api/historico/item?id=${encodeURIComponent(id)}`);
+  } catch (e) {
+    return aviso(e.message);
+  }
+  h.innerHTML = "";
+  const voltar = el("button", { type: "button", class: "botao-texto hist-voltar" }, "‹ Todas as perguntas");
+  voltar.addEventListener("click", listarHistorico);
+  const r = el("article", { class: "rodada" });
+  r.termos = [];
+  r.append(el("p", { class: "hist-meta" }, `${dataHora(it.quando)} · somente leitura`),
+    el("h2", { class: "pergunta" }, (it.correcao ? "Correção: " : "") + it.pergunta));
+  const res = it.resultado;
+  const lista = el("ul", { class: "resposta" });
+  for (const linha of res.linhas) lista.append(linhaResposta(linha, r));
+  const n = res.itens.filter((i) => i.veredito === "rastreável").length;
+  const comPagina = res.itens.filter((i) => i.citacoes.length).length;
+  const d = DECISOES[it.decisao] || DECISOES[""];
+  const pedidos = res.chamadas === 1 ? "1 chamada" : `${res.chamadas} chamadas`;
+  r.append(lista, el("div", { class: "rodape-rodada" },
+    el("p", { class: "leitura" }, resumoLeitura(res, n, comPagina)),
+    el("p", { class: "medidas" }, `${res.modelo.split(":").slice(1).join(":")} · ${pedidos} · ${res.segundos} s · ${Number(res.tokens).toLocaleString("pt-BR")} tokens`),
+    el("p", { class: "decidido" }, "Sua decisão: ", el("span", { class: `chip ${d.classe}` }, d.rotulo),
+      it.comentario ? ` “${it.comentario}”` : "")));
+  h.append(voltar, r);
+  h.scrollTop = 0;
+  const primeira = lista.querySelector(".aba:not(.nao-lida)");
+  if (primeira && window.matchMedia("(min-width: 961px)").matches) primeira.click();
 }
 
 // ---------------- página-fonte ----------------
@@ -660,8 +746,10 @@ function iniciar() {
       aviso(err.message);
     }
   });
+  $("#ver-historico").addEventListener("click", () => mostrarHistorico($("#historico").hidden));
   $("#nova").addEventListener("click", async () => {
     if (ocupado) return aviso("Espere a resposta terminar.");
+    mostrarHistorico(false);
     await api("/api/limpar", {});
     document.querySelectorAll(".rodada").forEach((r) => r.remove());
     $("#vazio").hidden = false;

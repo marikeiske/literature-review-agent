@@ -86,6 +86,8 @@ python main.py       (terminal)
 | 21/10 | Gemma 4 cita várias páginas num colchete (`[Lozano2023 p.14, 15, 16]`), fora do formato pedido | Verificador mantido estrito (conta como erro); o resumo mostra também a contagem lendo essas citações | `resumo_avaliacao.py` |
 | 26/10 | Qwen3.8 no Groq: "Request too large" (pedido acima do limite de tokens do plano gratuito) e o script esperava à toa | Esse erro pula a afirmação na hora; ela fica sem resposta e o artigo reporta quantas | `avaliar.py` (`com_retentativa`) |
 | 26/10 | Acentos quebrados na janela do Windows (Python em UTF-8, console em outra codificação) | Scripts `.ps1` forçam UTF-8 na saída | `scripts/*.ps1` |
+| 26/10 | "Nova conversa" apagava a tela sem jeito de rever as perguntas anteriores | Aba Histórico: lê as perguntas feitas na interface direto dos logs, com a resposta, os vereditos e a decisão humana (somente leitura) | `app.py` (`historico`), `web/` |
+| 26/10 | Reconstruir o histórico a partir do log marcava "página não lida" à toa: o log corta o texto das buscas | Logs antigos mostram o veredito gravado na hora; os novos gravam as páginas lidas completas na verificação | `app.py` (`_entradas_do_log`, `rodar_job`) |
 
 ## Quando uma falha se repetir
 

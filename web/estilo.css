@@ -361,6 +361,27 @@ select {
 .rev-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 16px; font-size: 13px; color: var(--tinta-suave); font-variant-numeric: tabular-nums; }
 .rev-dica { margin: 16px 0 0; font-size: 12px; color: var(--tinta-suave); }
 
+/* ---------- histórico ---------- */
+.historico { flex: 1; overflow-y: auto; padding: 24px 36px 28px 56px; }
+.hist-titulo { margin: 4px 0 4px; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.hist-sub { margin: 0 0 16px; max-width: 64ch; font-size: 13px; color: var(--tinta-suave); }
+.hist-carregando { color: var(--tinta-suave); font-size: 13px; }
+.hist-lista { list-style: none; margin: 0; padding: 0; max-width: 72ch; border-top: 1px solid var(--linha); }
+.hist-lista li { border-bottom: 1px solid var(--linha); }
+.hist-item {
+  width: 100%; display: flex; flex-direction: column; gap: 4px; text-align: left;
+  background: none; border: none; padding: 12px 8px; border-radius: var(--raio);
+}
+.hist-item:hover { background: var(--aba-fundo); }
+.hist-meta { font-size: 12px; color: var(--tinta-suave); font-variant-numeric: tabular-nums; margin: 0; }
+.hist-pergunta { font-size: 15px; font-weight: 600; line-height: 1.4; }
+.hist-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.hist-voltar { padding-left: 0; margin: 0 0 12px; }
+.historico .rodada { padding-left: 0; border-bottom: none; }
+.historico .marca-margem { left: -26px; }
+.decisao-legenda { flex-basis: 100%; margin: 0 0 4px; font-size: 12px; color: var(--tinta-suave); }
+#ver-historico[aria-pressed="true"] { color: var(--tinta); border-color: var(--linha); }
+
 /* ---------- aviso ---------- */
 .aviso {
   position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
@@ -385,6 +406,7 @@ select {
   .rev-topo { padding-left: 16px; padding-right: 16px; }
   .rev-progresso { margin-left: 0; width: 100%; }
   .rev-cartao { padding: 18px 16px 24px; }
+  .historico { padding: 18px 16px 24px 36px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

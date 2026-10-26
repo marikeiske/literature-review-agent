@@ -24,6 +24,7 @@
         <span class="visualmente-oculto">Modelo</span>
         <select id="modelo" aria-label="Modelo usado pelo agente"></select>
       </label>
+      <button id="ver-historico" class="botao-texto" type="button" aria-pressed="false">Histórico</button>
       <button id="nova" class="botao-texto" type="button">Nova conversa</button>
     </div>
   </header>
@@ -41,6 +42,8 @@
           <ul class="estante" id="estante"></ul>
         </div>
       </div>
+
+      <div id="historico" class="historico" hidden aria-live="polite"></div>
 
       <form id="form" class="caixa" autocomplete="off">
         <label for="pergunta" class="visualmente-oculto">Pergunta</label>

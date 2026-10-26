@@ -7,21 +7,26 @@ computador. Usa o mesmo agente do terminal (agente/harness.py): mesmas tools,
 mesma trava, mesmo verificador, mesmo log. O gate humano continua valendo:
 nada é gravado em fichamentos/ sem você clicar em "Aprovar e salvar".
 
+O botão "Histórico" mostra as perguntas anteriores feitas na interface, lidas dos logs
+(somente leitura), com a decisão humana que cada uma recebeu.
+
 A aba "Revisar" é o HITL da avaliação: você confere o gabarito e as respostas às
 perguntas negativas, e cada decisão vai para um CSV com data e hora (revisao.py).
 """
 import json
 import mimetypes
+import re
 import threading
 import time
 import uuid
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 import revisao
 from agente import hitl, verificador
-from agente.config import PASTA_CORPUS, PROVEDORES, RAIZ
+from agente.config import PASTA_CORPUS, PASTA_LOGS, PROVEDORES, RAIZ
 from agente.corpus import ARTIGOS_POR_ID
 from agente.harness import Agente
 
@@ -68,6 +73,112 @@ def linhas_verificadas(resposta: str, evidencias: dict) -> list[dict]:
     return saida
 
 
+# ---------- histórico: perguntas feitas na interface, lidas dos logs ----------
+CORRECAO = "Revise a resposta anterior. Correção pedida pela pessoa:"
+MARCA_PAGINA = re.compile(r"\[([A-Za-z][A-Za-z\-]*\d{4}) p\.(\d+)\]")
+_cache_hist: dict = {}  # arquivo -> (mtime, entradas)
+
+
+def _entradas_do_log(arquivo: Path) -> list[dict]:
+    """Uma entrada por pergunta respondida na interface, com a resposta e as páginas lidas."""
+    mtime = arquivo.stat().st_mtime
+    if arquivo in _cache_hist and _cache_hist[arquivo][0] == mtime:
+        return _cache_hist[arquivo][1]
+    entradas, atual = [], None
+    with open(arquivo, encoding="utf-8") as f:
+        for linha in f:
+            try:
+                ev = json.loads(linha)
+            except json.JSONDecodeError:
+                continue
+            tipo = ev.get("tipo")
+            if tipo == "pergunta":
+                atual = {"pergunta": ev.get("texto", ""), "quando": ev.get("quando", ""), "modelo": ev.get("modelo", ""),
+                         "resposta": "", "lidas": set(), "chamadas": 0, "segundos": 0.0, "tokens": 0}
+            elif tipo == "decisao_humana":
+                # A decisão vem depois da verificação: vale para a última pergunta respondida
+                if entradas and ev.get("origem") == "interface":
+                    entradas[-1]["decisao"] = ev.get("decisao", "")
+                    entradas[-1]["comentario"] = ev.get("comentario", "")
+            elif atual is None:
+                continue
+            elif tipo == "chamada_llm":
+                atual["chamadas"] += 1
+                atual["segundos"] += float(ev.get("segundos") or 0)
+                atual["tokens"] = ev.get("tokens_entrada") or atual["tokens"]
+                saida = ev.get("saida")
+                conteudo = saida.get("content") if isinstance(saida, dict) else None
+                if conteudo:
+                    atual["resposta"] = conteudo
+            elif tipo == "tool":
+                args = ev.get("argumentos") or {}
+                if isinstance(args, str):
+                    try:
+                        args = json.loads(args)
+                    except json.JSONDecodeError:
+                        args = {}
+                if ev.get("nome") == "ler_pagina" and args.get("artigo") and args.get("pagina"):
+                    atual["lidas"].add((args["artigo"], int(args["pagina"])))
+                for a, pg in MARCA_PAGINA.findall(str(ev.get("saida") or "")):
+                    atual["lidas"].add((a, int(pg)))
+            elif tipo == "verificacao" and ev.get("origem") == "interface":
+                # Logs novos gravam as páginas lidas completas; nos antigos, o texto das buscas vem
+                # cortado no log, então vale o veredito gravado na hora (não se recalcula).
+                atual["lidas_completas"] = bool(ev.get("lidas"))
+                if ev.get("lidas"):
+                    atual["lidas"] = {(a, int(pg)) for a, pg in ev["lidas"]}
+                atual["itens_log"] = ev.get("itens") or []
+                atual.update({"resumo": ev.get("resumo", ""), "decisao": "", "comentario": "",
+                              "id": f"{arquivo.stem}#{len(entradas)}"})
+                entradas.append(atual)
+                atual = None
+    _cache_hist[arquivo] = (mtime, entradas)
+    return entradas
+
+
+def historico() -> list[dict]:
+    saida = []
+    for arq in sorted(PASTA_LOGS.glob("sessao_*.jsonl"), reverse=True):
+        for e in reversed(_entradas_do_log(arq)):
+            correcao = e["pergunta"].startswith(CORRECAO)
+            saida.append({"id": e["id"], "quando": e["quando"], "modelo": e["modelo"], "resumo": e["resumo"],
+                          "pergunta": e["pergunta"].removeprefix(CORRECAO).strip() if correcao else e["pergunta"],
+                          "correcao": correcao, "decisao": e["decisao"]})
+    return saida
+
+
+def item_historico(id_: str) -> dict:
+    stem, _, n = id_.partition("#")
+    arquivo = PASTA_LOGS / f"{stem}.jsonl"
+    if not stem.startswith("sessao_") or not n.isdigit() or not arquivo.is_file():
+        raise ValueError("Conversa não encontrada.")
+    entradas = _entradas_do_log(arquivo)
+    if int(n) >= len(entradas):
+        raise ValueError("Conversa não encontrada.")
+    e = entradas[int(n)]
+    evid = {k: agente.ferramentas.paginas[k] for k in e["lidas"] if k in agente.ferramentas.paginas}
+    if e["lidas_completas"]:
+        itens = verificador.verificar(e["resposta"], evid)
+        linhas = linhas_verificadas(e["resposta"], evid)
+    else:
+        itens = e["itens_log"]
+        linhas = [{"texto": it.get("frase", ""), "veredito": it.get("veredito"), "detalhe": it.get("detalhe", ""),
+                   "citacoes": [list(c) for c in it.get("citacoes", [])]} for it in itens]
+        # Páginas citadas que o verificador deu como lidas também foram lidas
+        for it in itens:
+            if it.get("veredito") in ("rastreável", "número ausente"):
+                for art, pg in it.get("citacoes", []):
+                    if (art, int(pg)) in agente.ferramentas.paginas:
+                        evid[(art, int(pg))] = agente.ferramentas.paginas[(art, int(pg))]
+    correcao = e["pergunta"].startswith(CORRECAO)
+    return {"pergunta": e["pergunta"].removeprefix(CORRECAO).strip() if correcao else e["pergunta"],
+            "correcao": correcao, "quando": e["quando"], "decisao": e["decisao"], "comentario": e["comentario"],
+            "resultado": {"resposta": e["resposta"], "itens": itens, "linhas": linhas,
+                          "chamadas": e["chamadas"], "segundos": round(e["segundos"], 1), "tokens": e["tokens"],
+                          "modelo": e["modelo"], "lidas": sorted([a, pg] for (a, pg) in evid),
+                          "resumo": e["resumo"]}}
+
+
 def rodar_job(job_id: str, texto: str):
     job = jobs[job_id]
 
@@ -82,7 +193,8 @@ def rodar_job(job_id: str, texto: str):
             evid = dict(agente.ferramentas.evidencias)
             itens = verificador.verificar(resposta, evid)
             agente._registrar({"tipo": "verificacao", "resumo": verificador.resumo(itens), "itens": itens,
-                               "chamadas_turno": chamadas, "origem": "interface"})
+                               "chamadas_turno": chamadas, "origem": "interface",
+                               "lidas": sorted([a, p] for (a, p) in evid)})
             job["resultado"] = {
                 "resposta": resposta, "itens": itens, "linhas": linhas_verificadas(resposta, evid),
                 "chamadas": chamadas, "segundos": round(time.time() - job["inicio"], 1),
@@ -158,6 +270,13 @@ class Manipulador(BaseHTTPRequestHandler):
                 return self._json({"erro": f"{art} não tem a página {pag}"}, 404)
             total = sum(1 for (a, _) in agente.ferramentas.paginas if a == art)
             return self._json({"artigo": art, "pagina": pag, "total": total, "texto": texto})
+        if url.path == "/api/historico":
+            return self._json({"conversas": historico()})
+        if url.path == "/api/historico/item":
+            try:
+                return self._json(item_historico(q.get("id", "")))
+            except ValueError as e:
+                return self._json({"erro": str(e)}, 404)
         if url.path == "/api/revisao/conjuntos":
             return self._json({"conjuntos": revisao.conjuntos()})
         if url.path == "/api/revisao":
