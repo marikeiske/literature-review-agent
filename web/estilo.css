@@ -10,7 +10,7 @@
   --marca-texto-suave: rgba(242, 214, 75, 0.38);
   --lapis: #C2412D;
   --conferido: #2E7D5B;
-  --duvida: #B7791F;
+  --duvida: #9A6414; /* 4,9:1 sobre a folha clara (antes #B7791F, 3,5:1) */
   --foco: #2F6FB3;
   --serif: "Literata", Georgia, "Times New Roman", serif;
   --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -67,7 +67,8 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 
 /* ---------- barra superior ---------- */
 .barra {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  /* três colunas fixas: as abas não mudam de lugar quando os controles somem */
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;
   padding: 14px 24px;
 }
 .marca h1 {
@@ -77,7 +78,7 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
   letter-spacing: -0.02em;
 }
 .marca p { margin: 0; color: var(--tinta-suave); font-size: 13px; }
-.controles { display: flex; align-items: center; gap: 10px; }
+.controles { display: flex; align-items: center; gap: 10px; justify-self: end; }
 
 select {
   font: inherit; font-size: 14px; color: var(--tinta);
@@ -130,15 +131,17 @@ select {
 }
 .exemplo:hover { text-decoration-thickness: 8px; text-underline-offset: 0; text-decoration-skip-ink: none; }
 
-.estante { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--linha); }
-.estante li { border-bottom: 1px solid var(--linha); }
-.estante button {
-  width: 100%; display: grid; grid-template-columns: 9.5rem 1fr; gap: 12px; align-items: baseline;
-  background: none; border: none; padding: 8px 0; text-align: left;
+.estante-det { margin-top: 24px; }
+.estante-det summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--tinta-suave); }
+.estante-det summary:hover { color: var(--tinta); }
+.estante { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.estante .doc {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  background: var(--folha); border: 1px solid var(--linha); border-radius: 999px; padding: 3px 10px;
 }
-.estante .id { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
-.estante .tit { font-size: 14px; color: var(--tinta-suave); }
-.estante button:hover .tit { color: var(--tinta); }
+.estante .doc:hover { border-color: var(--tinta-suave); }
+.estante .id { font-size: 12.5px; font-weight: 600; }
+.estante .pags { font-size: 12px; color: var(--tinta-suave); font-variant-numeric: tabular-nums; }
 
 /* ---------- uma rodada: pergunta, trilha, resposta ---------- */
 .rodada { padding: 4px 0 28px 36px; border-bottom: 1px solid var(--linha); margin-bottom: 24px; }
@@ -192,7 +195,7 @@ select {
 .aba.nao-lida { background: transparent; color: var(--lapis); box-shadow: inset 0 0 0 1.5px var(--lapis); text-decoration: line-through; }
 
 .rodape-rodada { margin-top: 16px; max-width: 68ch; }
-.medidas { font-size: 12px; color: var(--tinta-suave); margin: 0 0 14px; opacity: 0.85; }
+.medidas { font-size: 12px; color: var(--tinta-suave); margin: 0 0 14px; }
 .leitura { font-size: 13px; color: var(--tinta-suave); margin: 0 0 2px; }
 
 .decisao { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
@@ -269,6 +272,14 @@ select {
 .fonte-texto mark.termo { background: var(--marca-texto-suave); color: inherit; }
 .fonte-texto mark.trecho { background: var(--marca-texto-suave); color: inherit; box-shadow: inset 0 -2px 0 var(--marca-texto); padding: 1px 0; }
 .fonte-pdf { width: 100%; height: 100%; border: 0; background: #fff; }
+.fonte-pdfjs { height: 100%; overflow: auto; padding: 12px; background: var(--papel); }
+.pdf-folha { position: relative; margin: 0 auto; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25); }
+.pdf-folha canvas { display: block; }
+.textLayer .grifo { background: rgba(242, 214, 75, 0.6); border-radius: 2px; }
+.textLayer .grifo-termo { background: rgba(242, 214, 75, 0.25); border-radius: 2px; }
+.pdf-externo { margin-left: auto; font-size: 12.5px; color: var(--tinta-suave); text-decoration: none; padding: 4px 6px; }
+.pdf-externo:hover { color: var(--tinta); text-decoration: underline; }
+.pdf-externo + .alternar { margin-left: 6px; }
 
 /* ---------- modos: perguntar / revisar ---------- */
 .modos { display: flex; gap: 2px; padding: 3px; background: var(--folha); border: 1px solid var(--linha); border-radius: 999px; }
@@ -347,7 +358,7 @@ select {
 .rev-opcao.s-meio:hover { border-color: var(--duvida); }
 .rev-opcao.s-ruim:hover { border-color: var(--lapis); }
 .rev-opcao.s-ok[aria-pressed="true"] { background: var(--conferido); border-color: var(--conferido); color: var(--folha); }
-.rev-opcao.s-meio[aria-pressed="true"] { background: var(--duvida); border-color: var(--duvida); color: #1B2A3A; }
+.rev-opcao.s-meio[aria-pressed="true"] { background: var(--duvida); border-color: var(--duvida); color: var(--folha); }
 .rev-opcao.s-ruim[aria-pressed="true"] { background: var(--lapis); border-color: var(--lapis); color: var(--folha); }
 
 #rev-nota {
@@ -382,6 +393,19 @@ select {
 .decisao-legenda { flex-basis: 100%; margin: 0 0 4px; font-size: 12px; color: var(--tinta-suave); }
 #ver-historico[aria-pressed="true"] { color: var(--tinta); border-color: var(--linha); }
 
+/* ---------- selo do verificador e espera ---------- */
+.selo { margin: 0 0 10px; }
+.espera { margin: 4px 0 8px; max-width: 60ch; }
+.relogio { margin: 0 0 8px; font-size: 13px; color: var(--tinta-suave); font-variant-numeric: tabular-nums; }
+.osso {
+  display: block; height: 11px; margin: 0 0 9px; border-radius: 6px;
+  background: linear-gradient(90deg, var(--linha) 0%, var(--papel) 50%, var(--linha) 100%);
+  background-size: 200% 100%; animation: osso 1.4s ease-in-out infinite;
+}
+.osso.curto { width: 55%; }
+@keyframes osso { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+#painel-historico { overflow: hidden; }
+
 /* ---------- aviso ---------- */
 .aviso {
   position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
@@ -392,7 +416,7 @@ select {
 /* ---------- telas estreitas: a página-fonte vira gaveta ---------- */
 @media (max-width: 960px) {
   .mesa { grid-template-columns: 1fr; padding: 0 12px 12px; }
-  .barra { padding: 12px 16px; flex-wrap: wrap; }
+  .barra { padding: 12px 16px; display: flex; flex-wrap: wrap; }
   .conversa { padding: 20px 16px 8px 8px; }
   .fonte { position: fixed; inset: 18vh 0 0 0; z-index: 5; border-radius: 12px 12px 0 0; box-shadow: 0 -8px 32px rgba(0,0,0,.18); }
   .fonte:not(.aberta) { display: none; }

@@ -6,6 +6,7 @@
   <title>Mesa de revisão</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/vendor/pdf_viewer.css">
   <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;1,7..72,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/estilo.css">
 </head>
@@ -17,6 +18,7 @@
     </div>
     <nav class="modos" role="tablist" aria-label="Modo da mesa">
       <button type="button" role="tab" id="aba-perguntar" aria-selected="true" aria-controls="painel-perguntar">Perguntar</button>
+      <button type="button" role="tab" id="aba-historico" aria-selected="false" aria-controls="painel-historico">Histórico</button>
       <button type="button" role="tab" id="aba-revisar" aria-selected="false" aria-controls="painel-revisao">Revisar</button>
     </nav>
     <div class="controles" id="controles-pergunta">
@@ -24,7 +26,6 @@
         <span class="visualmente-oculto">Modelo</span>
         <select id="modelo" aria-label="Modelo usado pelo agente"></select>
       </label>
-      <button id="ver-historico" class="botao-texto" type="button" aria-pressed="false">Histórico</button>
       <button id="nova" class="botao-texto" type="button">Nova conversa</button>
     </div>
   </header>
@@ -38,18 +39,22 @@
             com a página do PDF. Na margem, o verificador marca o que conferiu. Clique numa página
             para abri-la ao lado e decida se a resposta entra nos seus fichamentos.</p>
           <div class="exemplos" id="exemplos"></div>
-          <h3>Na estante</h3>
-          <ul class="estante" id="estante"></ul>
+          <details class="estante-det">
+            <summary id="estante-resumo">Documentos no corpus</summary>
+            <ul class="estante" id="estante"></ul>
+          </details>
         </div>
       </div>
-
-      <div id="historico" class="historico" hidden aria-live="polite"></div>
 
       <form id="form" class="caixa" autocomplete="off">
         <label for="pergunta" class="visualmente-oculto">Pergunta</label>
         <textarea id="pergunta" rows="1" placeholder="Pergunte sobre os artigos (pode ser em português)"></textarea>
         <button id="enviar" class="botao-principal" type="submit">Perguntar</button>
       </form>
+    </section>
+
+    <section class="folha" id="painel-historico" role="tabpanel" aria-labelledby="aba-historico" hidden>
+      <div id="historico" class="historico" aria-live="polite"></div>
     </section>
 
     <section class="folha revisao" id="painel-revisao" role="tabpanel" aria-labelledby="aba-revisar" hidden>
@@ -84,6 +89,7 @@
           <button type="button" id="pag-ant" aria-label="Página anterior">‹</button>
           <span id="pag-rotulo" aria-live="polite"></span>
           <button type="button" id="pag-prox" aria-label="Próxima página">›</button>
+          <a id="pdf-externo" class="pdf-externo" target="_blank" rel="noopener" title="Abrir o PDF inteiro numa aba nova">PDF completo ↗</a>
           <div class="alternar" role="tablist" aria-label="Formato da página">
             <button type="button" role="tab" id="ver-texto" aria-selected="true">Texto</button>
             <button type="button" role="tab" id="ver-pdf" aria-selected="false">PDF</button>
@@ -91,6 +97,7 @@
         </div>
         <div class="fonte-corpo">
           <article id="fonte-texto" class="fonte-texto"></article>
+          <div id="fonte-pdfjs" class="fonte-pdfjs" hidden aria-label="Página do PDF com os números grifados"></div>
           <iframe id="fonte-pdf" class="fonte-pdf" title="PDF do artigo" hidden></iframe>
         </div>
       </div>

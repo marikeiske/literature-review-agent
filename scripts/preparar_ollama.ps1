@@ -21,7 +21,7 @@ $OutputEncoding = [Text.Encoding]::UTF8
       docker rename ollama-novo $novoNome
       "Conteiner antigo guardado como $novoNome (o modelo baixado fica no volume e e reaproveitado)."
     }
-    docker run -d --name ollama-novo --restart unless-stopped --network te251 -p 127.0.0.1:11435:11434 -e OLLAMA_CONTEXT_LENGTH=8192 -v ollama-novo:/root/.ollama ollama/ollama:latest
+    docker run -d --name ollama-novo --restart unless-stopped --network te251 -p 127.0.0.1:11435:11434 -e OLLAMA_CONTEXT_LENGTH=8192 -v ollama-novo:/root/.ollama ollama/ollama:0.40.6
     Start-Sleep 8
   } else { docker start ollama-novo | Out-Null; "Ja estava com 8192." }
   docker exec ollama-novo ollama --version

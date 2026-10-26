@@ -5,15 +5,17 @@ const $ = (s) => document.querySelector(s);
 const CITACAO = /\[\s*([A-Za-z][A-Za-z\-]*\d{4})\s*,?\s*p(?:ág)?\.?\s*(\d+)\s*\]/g;
 const NUMERO = /(?<![\w.])\d+(?:[.,]\d+)?/g;
 
+// Acerto = página exata nas 109 afirmações do gabarito, condição RAG (resultados/resumo_numeros.md, 26/10/2026).
+// O primeiro modelo disponível do grupo "Recomendados" é o padrão.
 const MODELOS = [
-  { alvo: "groq", rotulo: "GPT-OSS 120B (Groq)", provedor: "groq" },
-  { alvo: "groq:qwen/qwen3.8-27b", rotulo: "Qwen3.8 27B (Groq)", provedor: "groq" },
-  { alvo: "gemini", rotulo: "Gemini Flash-Lite (Google)", provedor: "gemini" },
-  { alvo: "openrouter", rotulo: "Nemotron 3 Ultra (OpenRouter)", provedor: "openrouter" },
-  { alvo: "ollama:gemma4:31b-cloud", rotulo: "Gemma 4 31B (Ollama Cloud)", provedor: "ollama" },
-  { alvo: "ollama:nemotron-3-ultra:cloud", rotulo: "Nemotron 3 Ultra (Ollama Cloud)", provedor: "ollama" },
-  { alvo: "ollama:gpt-oss:120b-cloud", rotulo: "GPT-OSS 120B (Ollama Cloud)", provedor: "ollama" },
-  { alvo: "ollama", rotulo: "Bonsai 2 4B (local, muito lento)", provedor: "ollama" },
+  { grupo: "Recomendados", alvo: "ollama:nemotron-3-ultra:cloud", rotulo: "Nemotron 3 Ultra · Ollama Cloud · 97%", provedor: "ollama" },
+  { grupo: "Recomendados", alvo: "groq", rotulo: "GPT-OSS 120B · Groq · 95%", provedor: "groq" },
+  { grupo: "Recomendados", alvo: "ollama:gpt-oss:120b-cloud", rotulo: "GPT-OSS 120B · Ollama Cloud · 95%", provedor: "ollama" },
+  { grupo: "Recomendados", alvo: "ollama:gemma4:31b-cloud", rotulo: "Gemma 4 31B · Ollama Cloud · 94%", provedor: "ollama" },
+  { grupo: "Outros", alvo: "gemini", rotulo: "Gemini Flash-Lite · Google · 91%", provedor: "gemini" },
+  { grupo: "Outros", alvo: "groq:qwen/qwen3.8-27b", rotulo: "Qwen3.8 27B · Groq · amostra de 80", provedor: "groq" },
+  { grupo: "Outros", alvo: "openrouter", rotulo: "Nemotron 3 Ultra · OpenRouter · não avaliado", provedor: "openrouter" },
+  { grupo: "Local (sem internet)", alvo: "ollama", rotulo: "Bonsai 2 4B · muito lento · não avaliado", provedor: "ollama" },
 ];
 const EXEMPLOS = [
   "Quanto a arquitetura de Nimbekar consome na FPGA?",
@@ -31,7 +33,7 @@ const VEREDITOS = {
 
 let estado = null;
 let ocupado = false;
-const fonte = { artigo: null, pagina: 1, total: 1, destaque: { numeros: [], termos: [] }, modo: "texto", aba: null };
+const fonte = { artigo: null, pagina: 1, total: 1, destaque: { numeros: [], termos: [] }, modo: "pdf", aba: null };
 
 // ---------------- utilidades ----------------
 function esc(t) {
@@ -79,19 +81,32 @@ async function carregarEstado() {
   const sel = $("#modelo");
   sel.innerHTML = "";
   const prontos = Object.fromEntries(estado.provedores.map((p) => [p.nome, p.pronto]));
+  const grupos = {};
   for (const m of MODELOS) {
+    if (!grupos[m.grupo]) sel.append((grupos[m.grupo] = el("optgroup", { label: m.grupo })));
     const op = el("option", { value: m.alvo }, m.rotulo + (prontos[m.provedor] ? "" : " (sem chave)"));
     if (!prontos[m.provedor]) op.disabled = true;
-    sel.append(op);
+    grupos[m.grupo].append(op);
   }
-  const atual = MODELOS.find((m) => estado.modelo === rotuloDe(m.alvo)) || MODELOS[0];
-  sel.value = atual.alvo;
+  // Modelo da última vez; senão, o melhor recomendado que tenha chave
+  const disponivel = (alvo) => MODELOS.some((m) => m.alvo === alvo && prontos[m.provedor]);
+  const salvo = lembrar("mesa.modelo");
+  const escolhido = disponivel(salvo) ? salvo : (MODELOS.find((m) => m.grupo === "Recomendados" && prontos[m.provedor]) || {}).alvo;
+  const atual = MODELOS.find((m) => estado.modelo === rotuloDe(m.alvo));
+  if (escolhido && (!atual || atual.alvo !== escolhido)) {
+    try {
+      Object.assign(estado, await api("/api/modelo", { alvo: escolhido }));
+    } catch { /* fica no modelo do servidor */ }
+  }
+  const agora = MODELOS.find((m) => estado.modelo === rotuloDe(m.alvo)) || MODELOS[0];
+  sel.value = agora.alvo;
 
   const est = $("#estante");
   est.innerHTML = "";
+  $("#estante-resumo").textContent = `Os ${estado.artigos.length} documentos do corpus`;
   for (const a of estado.artigos) {
-    est.append(el("li", {}, el("button", { type: "button", onclick: () => abrirFonte(a.id, 1, null) },
-      el("span", { class: "id" }, `${a.id}`), el("span", { class: "tit" }, `${a.titulo} (${a.paginas} p.)`))));
+    est.append(el("li", {}, el("button", { type: "button", class: "doc", title: a.titulo, onclick: () => abrirFonte(a.id, 1, null) },
+      el("span", { class: "id" }, a.id), el("span", { class: "pags" }, `${a.paginas} p.`))));
   }
   const ex = $("#exemplos");
   ex.innerHTML = "";
@@ -125,7 +140,10 @@ function criarRodada(pergunta, correcao) {
   if (pergunta) r.append(el("h2", { class: "pergunta" }, pergunta));
   if (correcao) r.append(el("p", { class: "correcao-pedida" }, `Correção pedida: ${correcao}`));
   r.trilha = el("ol", { class: "trilha", "aria-label": "O que o agente fez" });
-  r.append(r.trilha);
+  r.inicio = Date.now();
+  r.espera = el("div", { class: "espera", "aria-hidden": "true" },
+    el("p", { class: "relogio" }, "Respondendo… 0 s"), el("span", { class: "osso" }), el("span", { class: "osso" }), el("span", { class: "osso curto" }));
+  r.append(r.trilha, r.espera);
   $("#conversa").append(r);
   r.scrollIntoView({ behavior: "smooth", block: "end" });
   return r;
@@ -141,7 +159,10 @@ function acompanhar(job, rodada, vistos = 0) {
       return definirOcupado(false);
     }
     for (const ev of j.eventos.slice(vistos)) mostrarEvento(rodada, ev);
+    const relogio = rodada.espera && rodada.espera.querySelector(".relogio");
+    if (relogio) relogio.textContent = `Respondendo… ${Math.round((Date.now() - rodada.inicio) / 1000)} s`;
     if (j.estado === "rodando") return acompanhar(job, rodada, j.eventos.length);
+    if (rodada.espera) rodada.espera.remove();
     rodada.trilha.querySelectorAll(".agora").forEach((n) => n.remove());
     if (j.estado === "erro") mostrarErro(rodada, j.erro);
     else mostrarResposta(rodada, job, j.resultado);
@@ -172,14 +193,26 @@ function mostrarEvento(rodada, ev) {
 }
 
 function mostrarErro(rodada, erro) {
+  if (rodada.espera) rodada.espera.remove();
   rodada.append(el("p", { class: "erro", title: erro }, explicarErro(erro)));
 }
 
 // ---------------- resposta verificada ----------------
+// Etiqueta no topo da resposta: quantas frases com página passaram no verificador
+function seloVerificador(itens) {
+  const comPagina = itens.filter((i) => i.citacoes.length).length;
+  const ok = itens.filter((i) => i.veredito === "rastreável").length;
+  if (!comPagina) return el("p", { class: "selo" }, el("span", { class: "chip" }, "Nenhuma frase com página"));
+  const classe = ok === comPagina ? "chip-ok" : ok ? "chip-meio" : "chip-erro";
+  return el("p", { class: "selo" }, el("span", { class: `chip ${classe}`, title: "O verificador confere se a página foi lida e se os números estão nela. Se o trecho sustenta a frase, quem decide é você." },
+    `${ok === comPagina ? "✓ " : ""}${ok} de ${comPagina} frases conferidas pelo verificador`));
+}
+
 function mostrarResposta(rodada, job, r) {
+  if (rodada.espera) rodada.espera.remove();
   const lista = el("ul", { class: "resposta" });
   for (const linha of r.linhas) lista.append(linhaResposta(linha, rodada));
-  rodada.append(lista);
+  rodada.append(seloVerificador(r.itens), lista);
 
   const n = (v) => r.itens.filter((i) => i.veredito === v).length;
   const comPagina = r.itens.filter((i) => i.citacoes.length).length;
@@ -282,15 +315,6 @@ const DECISOES = {
   "": { rotulo: "Sem decisão", classe: "" },
 };
 
-function mostrarHistorico(sim) {
-  $("#historico").hidden = !sim;
-  $("#conversa").hidden = sim;
-  $("#form").hidden = sim;
-  $("#ver-historico").setAttribute("aria-pressed", String(sim));
-  $("#ver-historico").textContent = sim ? "Voltar à conversa" : "Histórico";
-  if (sim) listarHistorico();
-}
-
 function dataHora(iso) {
   const d = new Date(iso);
   return isNaN(d) ? iso : d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
@@ -298,6 +322,7 @@ function dataHora(iso) {
 
 async function listarHistorico() {
   const h = $("#historico");
+  fecharFonte(); // a página aberta era da conversa ou da revisão, não do histórico
   h.innerHTML = "";
   h.append(el("p", { class: "hist-carregando" }, "Carregando…"));
   let conversas;
@@ -309,7 +334,7 @@ async function listarHistorico() {
   }
   h.innerHTML = "";
   h.append(el("h2", { class: "hist-titulo" }, "Perguntas anteriores"),
-    el("p", { class: "hist-sub" }, `${conversas.length} perguntas feitas nesta interface, da mais recente para a mais antiga. Abrir uma delas só mostra; nada é enviado de novo ao modelo.`));
+    el("p", { class: "hist-sub" }, `${conversas.length} perguntas feitas na aba Perguntar, da mais recente para a mais antiga. Abrir uma delas só mostra; nada é enviado de novo ao modelo.`));
   if (!conversas.length) return h.append(el("p", { class: "rev-vazio" }, "Nenhuma pergunta ainda."));
   const lista = el("ul", { class: "hist-lista" });
   for (const c of conversas) {
@@ -342,6 +367,7 @@ async function abrirHistorico(id) {
   r.append(el("p", { class: "hist-meta" }, `${dataHora(it.quando)} · somente leitura`),
     el("h2", { class: "pergunta" }, (it.correcao ? "Correção: " : "") + it.pergunta));
   const res = it.resultado;
+  r.append(seloVerificador(res.itens));
   const lista = el("ul", { class: "resposta" });
   for (const linha of res.linhas) lista.append(linhaResposta(linha, r));
   const n = res.itens.filter((i) => i.veredito === "rastreável").length;
@@ -378,6 +404,7 @@ async function abrirFonte(artigo, pagina, destaque, aba) {
     $("#pag-rotulo").textContent = `p. ${pagina} de ${p.total}`;
     $("#pag-ant").disabled = pagina <= 1;
     $("#pag-prox").disabled = pagina >= p.total;
+    $("#pdf-externo").href = `/pdf/${artigo}.pdf#page=${pagina}`;
     $("#fonte-texto").innerHTML = grifar(refluir(p.texto), fonte.destaque);
     $("#fonte-texto").scrollTop = 0;
     const marca = $("#fonte-texto mark:not(.termo)") || $("#fonte-texto mark");
@@ -418,18 +445,92 @@ function grifar(texto, destaque) {
   return html.replace(re, (m, num) => (num ? `<mark>${m}</mark>` : `<mark class="termo">${m}</mark>`));
 }
 
-function mostrarPdf() {
-  const f = $("#fonte-pdf");
-  f.src = "about:blank"; // força recarregar quando só a página muda
-  setTimeout(() => (f.src = `/pdf/${fonte.artigo}.pdf#page=${fonte.pagina}&view=FitH`), 30);
+// PDF.js (web/vendor) desenha a página e uma camada de texto por cima; os números e termos da
+// afirmação são grifados nessa camada. Se o PDF.js falhar, cai no visualizador do navegador.
+let pdfjs = null;
+const pdfDocs = {};
+async function carregarPdfjs() {
+  if (!pdfjs) {
+    pdfjs = await import("/vendor/pdf.min.mjs");
+    pdfjs.GlobalWorkerOptions.workerSrc = "/vendor/pdf.worker.min.mjs";
+  }
+  return pdfjs;
 }
+
+async function mostrarPdf() {
+  const caixa = $("#fonte-pdfjs");
+  const pedido = (fonte.pdfPedido = (fonte.pdfPedido || 0) + 1);
+  $("#pdf-externo").href = `/pdf/${fonte.artigo}.pdf#page=${fonte.pagina}`;
+  try {
+    const lib = await carregarPdfjs();
+    pdfDocs[fonte.artigo] ||= lib.getDocument({ url: `/pdf/${fonte.artigo}.pdf`, isEvalSupported: false }).promise;
+    const doc = await pdfDocs[fonte.artigo];
+    const pagina = await doc.getPage(fonte.pagina);
+    if (pedido !== fonte.pdfPedido) return; // o usuário já pediu outra página
+    const escala = Math.max(0.5, (caixa.clientWidth - 24) / pagina.getViewport({ scale: 1 }).width);
+    const vp = pagina.getViewport({ scale: escala });
+    const dpr = window.devicePixelRatio || 1;
+    const canvas = el("canvas", { width: String(Math.floor(vp.width * dpr)), height: String(Math.floor(vp.height * dpr)),
+      style: `width:${vp.width}px;height:${vp.height}px` });
+    const camada = el("div", { class: "textLayer" });
+    const folha = el("div", { class: "pdf-folha", style: `width:${vp.width}px;height:${vp.height}px;--scale-factor:${escala}` }, canvas, camada);
+    caixa.replaceChildren(folha);
+    $("#fonte-pdf").hidden = true;
+    caixa.hidden = false;
+    await pagina.render({ canvasContext: canvas.getContext("2d"), viewport: vp, transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null }).promise;
+    await new lib.TextLayer({ textContentSource: pagina.streamTextContent(), container: camada, viewport: vp }).render();
+    const primeiro = grifarPdf(camada, fonte.destaque);
+    if (primeiro) primeiro.scrollIntoView({ block: "center" });
+    else caixa.scrollTop = 0;
+  } catch (e) {
+    console.warn("PDF.js falhou; usando o visualizador do navegador.", e);
+    caixa.hidden = true;
+    const f = $("#fonte-pdf");
+    f.hidden = false;
+    f.src = "about:blank"; // força recarregar quando só a página muda
+    setTimeout(() => (f.src = `/pdf/${fonte.artigo}.pdf#page=${fonte.pagina}&view=FitH`), 30);
+  }
+}
+
+// Grifa, na camada de texto do PDF, os mesmos números/termos/trecho do modo Texto. Devolve o primeiro grifo.
+function grifarPdf(camada, destaque) {
+  const spans = [...camada.querySelectorAll("span")].filter((s) => !s.classList.contains("markedContent") && s.textContent.trim());
+  const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  let primeiro = null;
+  const marcar = (s, classe) => { s.classList.add(classe); primeiro ||= s; };
+  if (destaque && destaque.trecho) {
+    // Junta os spans num texto só, acha o trecho e grifa os spans que ele cobre
+    let texto = "";
+    const faixas = spans.map((s) => { const ini = texto.length; texto += s.textContent + " "; return [ini, texto.length - 1]; });
+    const m = new RegExp(destaque.trecho.split(/\s+/).filter(Boolean).map(escRe).join("\\s+"), "i").exec(texto);
+    if (m) spans.forEach((s, k) => { if (faixas[k][1] > m.index && faixas[k][0] < m.index + m[0].length) marcar(s, "grifo"); });
+    return primeiro;
+  }
+  const nums = new Set();
+  for (const n of (destaque && destaque.numeros) || []) {
+    if (n.length < 2 && !/[.,]/.test(n)) continue;
+    nums.add(n.replace(",", ".")); nums.add(n.replace(".", ","));
+  }
+  const termos = [...new Set(((destaque && destaque.termos) || []).map((x) => x.toLowerCase().replace(/[^\p{L}\p{N}-]/gu, "")).filter((x) => x.length >= 4))];
+  const reNum = nums.size ? new RegExp(`(?<![\\w.,])(${[...nums].map(escRe).join("|")})(?![\\w]|[.,]\\d)`) : null;
+  const reTermo = termos.length ? new RegExp(`(?<![\\p{L}])(${termos.map(escRe).join("|")})(?![\\p{L}])`, "iu") : null;
+  for (const s of spans) {
+    if (reNum && reNum.test(s.textContent)) marcar(s, "grifo");
+    else if (reTermo && reTermo.test(s.textContent)) marcar(s, "grifo-termo");
+  }
+  // Prefere rolar até um número (o que o verificador conferiu)
+  return camada.querySelector(".grifo") || primeiro;
+}
+
 function alternarModo(modo) {
   fonte.modo = modo;
   $("#ver-texto").setAttribute("aria-selected", String(modo === "texto"));
   $("#ver-pdf").setAttribute("aria-selected", String(modo === "pdf"));
+  guardar("mesa.fonte", modo);
   $("#fonte-texto").hidden = modo !== "texto";
-  $("#fonte-pdf").hidden = modo !== "pdf";
-  if (modo === "pdf") mostrarPdf();
+  $("#fonte-pdfjs").hidden = modo !== "pdf";
+  $("#fonte-pdf").hidden = true;
+  if (modo === "pdf" && fonte.artigo) mostrarPdf();
 }
 
 // ---------------- revisão humana da avaliação (aba Revisar) ----------------
@@ -443,14 +544,16 @@ function guardar(chave, valor) { try { localStorage.setItem(chave, valor); } cat
 function lembrar(chave) { try { return localStorage.getItem(chave); } catch { return null; } }
 
 function trocarModo(modo) {
-  const revisar = modo === "revisar";
-  $("#painel-perguntar").hidden = revisar;
-  $("#painel-revisao").hidden = !revisar;
-  $("#controles-pergunta").hidden = revisar;
-  $("#aba-perguntar").setAttribute("aria-selected", String(!revisar));
-  $("#aba-revisar").setAttribute("aria-selected", String(revisar));
+  for (const m of ["perguntar", "historico", "revisar"]) {
+    $(`#aba-${m}`).setAttribute("aria-selected", String(m === modo));
+  }
+  $("#painel-perguntar").hidden = modo !== "perguntar";
+  $("#painel-historico").hidden = modo !== "historico";
+  $("#painel-revisao").hidden = modo !== "revisar";
+  $("#controles-pergunta").hidden = modo !== "perguntar";
   guardar("mesa.modo", modo);
-  if (revisar && !rev.carregado) carregarConjuntos();
+  if (modo === "historico") listarHistorico();
+  if (modo === "revisar" && !rev.carregado) carregarConjuntos();
 }
 
 async function carregarConjuntos(manter) {
@@ -543,7 +646,7 @@ function proximaPendente() {
   aviso("Tudo revisado neste conjunto.");
 }
 
-// Pré-conferência da AI: sugestão, trecho literal da página e observação. É rascunho:
+// Pré-conferência da IA: sugestão, trecho literal da página e observação. É rascunho:
 // a tela deixa isso explícito e nada daqui é gravado como revisão.
 function blocoClaude(it) {
   const pc = it.claude;
@@ -554,14 +657,14 @@ function blocoClaude(it) {
     `${it.artigo.replace(/\d{4}$/, "")} p. ${pc.pagina}`);
   aba.addEventListener("click", () => abrirFonte(it.artigo, pc.pagina, { numeros: [], termos: [], trecho: pc.trecho }, aba));
   const bloco = el("details", { class: "rev-claude" },
-    el("summary", {}, "Pré-conferência da AI ", chip),
+    el("summary", {}, "Pré-conferência da IA ", chip),
     el("blockquote", { class: "rev-trecho" }, `“${pc.trecho}” `, aba));
   if (pc.nota) bloco.append(el("p", { class: "rev-claude-nota" }, pc.nota));
   if (corrigir) {
     const usar = el("button", { type: "button", class: "botao-texto" }, `Escrever “${pc.correcao}” na correção`);
     usar.addEventListener("click", () => {
       const nota = $("#rev-nota");
-      nota.value = `${pc.correcao} (sugestão da AI, conferida por mim)`;
+      nota.value = `${pc.correcao} (sugestão da IA, conferida por mim)`;
       nota.focus();
     });
     bloco.append(usar);
@@ -741,15 +844,14 @@ function iniciar() {
     try {
       const r = await api("/api/modelo", { alvo: e.target.value });
       estado = { ...estado, ...r };
+      guardar("mesa.modelo", e.target.value);
       aviso(`Agora respondendo com ${e.target.selectedOptions[0].textContent}.`);
     } catch (err) {
       aviso(err.message);
     }
   });
-  $("#ver-historico").addEventListener("click", () => mostrarHistorico($("#historico").hidden));
   $("#nova").addEventListener("click", async () => {
     if (ocupado) return aviso("Espere a resposta terminar.");
-    mostrarHistorico(false);
     await api("/api/limpar", {});
     document.querySelectorAll(".rodada").forEach((r) => r.remove());
     $("#vazio").hidden = false;
@@ -762,12 +864,14 @@ function iniciar() {
   $("#fechar-fonte").addEventListener("click", fecharFonte);
   $("#aba-perguntar").addEventListener("click", () => trocarModo("perguntar"));
   $("#aba-revisar").addEventListener("click", () => trocarModo("revisar"));
+  $("#aba-historico").addEventListener("click", () => trocarModo("historico"));
   $("#rev-conjunto").addEventListener("change", (e) => carregarConjunto(e.target.value).catch((err) => aviso(err.message)));
   $("#rev-filtro").addEventListener("change", () => { aplicarFiltro(); desenharRevisao(); });
   $("#rev-artigo").addEventListener("change", () => { aplicarFiltro(); desenharRevisao(); });
   document.addEventListener("keydown", teclasRevisao);
+  alternarModo(lembrar("mesa.fonte") === "texto" ? "texto" : "pdf");
   carregarEstado()
-    .then(() => { if (lembrar("mesa.modo") === "revisar") trocarModo("revisar"); })
+    .then(() => { const m = lembrar("mesa.modo"); if (m === "revisar" || m === "historico") trocarModo(m); })
     .catch((e) => aviso(`Não consegui carregar o agente: ${e.message}`));
   ta.focus();
 }

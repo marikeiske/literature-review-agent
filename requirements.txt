@@ -1,4 +1,6 @@
-openai>=1.40
-python-dotenv>=1.0
-pymupdf>=1.24
-openpyxl>=3.1
+# Versões fixas (conferidas com pip-audit em 26/10/2026: nenhuma vulnerabilidade conhecida).
+# Para atualizar: mude a versão aqui, rode `pip install -r requirements.txt` e `python -m pip_audit`.
+openai==3.35.1
+python-dotenv==1.2.4
+pymupdf==2.0
+openpyxl==3.1.5

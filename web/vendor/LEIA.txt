@@ -1,0 +1,2 @@
+PDF.js 4.10.38 (pdfjs-dist, Mozilla), licença Apache-2.0 (LICENSE-pdfjs.txt).
+Empacotado aqui para a interface mostrar a página do PDF com os números grifados sem depender de CDN.

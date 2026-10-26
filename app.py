@@ -31,7 +31,18 @@ from agente.corpus import ARTIGOS_POR_ID
 from agente.harness import Agente
 
 PASTA_WEB = RAIZ / "web"
+PASTA_VENDOR = PASTA_WEB / "vendor"  # PDF.js empacotado (Apache-2.0), para não depender de CDN
 PORTA = 8765
+porta_ativa = PORTA  # a porta em que o servidor abriu de fato (main)
+
+# Segurança do servidor local (análise de 26/10): o servidor escuta só em 127.0.0.1, mas o
+# navegador deixa qualquer site mandar pedidos para lá. Por isso:
+#  - Host precisa ser 127.0.0.1/localhost na porta certa (bloqueia DNS rebinding);
+#  - POST precisa vir da própria página (Origin/Sec-Fetch-Site) e com corpo JSON
+#    (um site de fora não consegue mandar JSON sem pré-verificação CORS, que este servidor nega).
+CSP = ("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+       "font-src https://fonts.gstatic.com; img-src 'self' data: blob:; frame-src 'self'; worker-src 'self' blob:; "
+       "connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'")
 
 agente = Agente()
 trava_agente = threading.Lock()  # uma pergunta por vez
@@ -149,8 +160,10 @@ def historico() -> list[dict]:
 
 def item_historico(id_: str) -> dict:
     stem, _, n = id_.partition("#")
+    if not re.fullmatch(r"sessao_[\d_-]+", stem) or not n.isdigit():  # nada de "../" no id
+        raise ValueError("Conversa não encontrada.")
     arquivo = PASTA_LOGS / f"{stem}.jsonl"
-    if not stem.startswith("sessao_") or not n.isdigit() or not arquivo.is_file():
+    if not arquivo.is_file():
         raise ValueError("Conversa não encontrada.")
     entradas = _entradas_do_log(arquivo)
     if int(n) >= len(entradas):
@@ -226,15 +239,38 @@ class Manipulador(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Cache-Control", "no-store")
+        self._cabecalhos_seguranca()
         self.send_header("Content-Length", str(len(corpo)))
         self.end_headers()
         self.wfile.write(corpo)
+
+    def _cabecalhos_seguranca(self, pagina=False):
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("X-Frame-Options", "SAMEORIGIN")
+        if pagina:
+            self.send_header("Content-Security-Policy", CSP)
+
+    def _pedido_confiavel(self, post: bool) -> bool:
+        """Só a própria página, aberta em 127.0.0.1/localhost, fala com o servidor."""
+        hosts = {f"127.0.0.1:{porta_ativa}", f"localhost:{porta_ativa}"}
+        if self.headers.get("Host", "") not in hosts:
+            return False
+        if not post:
+            return True
+        origem = self.headers.get("Origin")
+        if origem is not None and origem not in {f"http://{h}" for h in hosts}:
+            return False
+        if self.headers.get("Sec-Fetch-Site", "same-origin") not in ("same-origin", "none"):
+            return False
+        return self.headers.get("Content-Type", "").split(";")[0].strip() == "application/json"
 
     def _arquivo(self, caminho, tipo=None):
         if not caminho.is_file():
             return self._json({"erro": "não encontrado"}, 404)
         dados = caminho.read_bytes()
         self.send_response(200)
+        self._cabecalhos_seguranca(pagina=caminho.suffix == ".html")
         self.send_header("Content-Type", tipo or mimetypes.guess_type(str(caminho))[0] or "application/octet-stream")
         self.send_header("Content-Length", str(len(dados)))
         self.end_headers()
@@ -249,10 +285,18 @@ class Manipulador(BaseHTTPRequestHandler):
 
     # ---------- GET ----------
     def do_GET(self):
+        if not self._pedido_confiavel(post=False):
+            return self._json({"erro": "Pedido recusado: abra a interface em http://127.0.0.1."}, 403)
         url = urlparse(self.path)
         q = {k: v[0] for k, v in parse_qs(url.query).items()}
         if url.path in ("/", "/index.html"):
             return self._arquivo(PASTA_WEB / "index.html", "text/html; charset=utf-8")
+        if url.path.startswith("/vendor/"):
+            nome = url.path[len("/vendor/"):]
+            if not re.fullmatch(r"[\w.-]+", nome):  # só arquivos da pasta, sem subpastas
+                return self._json({"erro": "não encontrado"}, 404)
+            tipo = "text/javascript; charset=utf-8" if nome.endswith(".mjs") else None
+            return self._arquivo(PASTA_VENDOR / nome, tipo)
         if url.path in ("/estilo.css", "/app.js"):
             tipo = "text/css; charset=utf-8" if url.path.endswith(".css") else "text/javascript; charset=utf-8"
             return self._arquivo(PASTA_WEB / url.path.lstrip("/"), tipo)
@@ -293,6 +337,8 @@ class Manipulador(BaseHTTPRequestHandler):
 
     # ---------- POST ----------
     def do_POST(self):
+        if not self._pedido_confiavel(post=True):
+            return self._json({"erro": "Pedido recusado: só a própria interface pode fazer alterações."}, 403)
         url = urlparse(self.path)
         dados = self._corpo()
         if url.path == "/api/perguntar":
@@ -360,6 +406,8 @@ def main():
             porta += 1
     else:
         raise SystemExit("Nenhuma porta livre entre 8765 e 8774.")
+    global porta_ativa
+    porta_ativa = porta
     endereco = f"http://127.0.0.1:{porta}"
     print(f"Mesa de revisão aberta em {endereco}  (Ctrl+C para encerrar)")
     print(f"Modelo: {agente.rotulo} · log: {agente.arquivo_log}")

@@ -93,6 +93,47 @@ mais `/chamadas`, que conta as requisições).
 - `AGENTS.md` — regras do projeto e mapa dos arquivos.
 - `skills/fichamento/SKILL.md` — instruções carregadas quando você pede o fichamento de um artigo.
 
+## Segurança e privacidade
+
+Análise feita em 26/10/2026. O que foi corrigido e o que continua como risco declarado.
+
+**Servidor local (`app.py`)**
+- Escuta só em `127.0.0.1`. Recusa pedidos com `Host` diferente de `127.0.0.1`/`localhost` na
+  porta certa, o que bloqueia *DNS rebinding*.
+- Alterações (POST) só valem quando vêm da própria página: o servidor confere `Origin` e
+  `Sec-Fetch-Site` e exige corpo JSON. Sem isso, qualquer site aberto no navegador poderia mudar
+  a revisão humana (`revisao_gabarito.csv`) ou gastar a cota dos provedores.
+- Cabeçalhos: `Content-Security-Policy`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`.
+- O texto dos PDFs e as respostas dos modelos passam por escape antes de virar HTML.
+  `/pdf/` só serve PDFs do corpus, e `/vendor/` só serve arquivos da pasta `web/vendor`.
+
+**Docker**
+- n8n (`n8nio/n8n:2.43.7`) e Ollama (`ollama/ollama:0.40.6`) publicam porta só em `127.0.0.1`.
+  O n8n estava em `0.0.0.0:5678`, acessível por qualquer pessoa na mesma rede.
+  Para recriar o n8n do mesmo jeito:
+  ```
+  docker run -d --name n8n --restart unless-stopped -p 127.0.0.1:5678:5678 -e GENERIC_TIMEZONE=America/Sao_Paulo -e TZ=America/Sao_Paulo -e N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true -v n8n_te251:/home/node/.n8n n8nio/n8n:2.43.7
+  docker network connect te251 n8n
+  ```
+
+**Dependências**
+- Versões fixas em `requirements.txt`. `python -m pip_audit` em 26/10: nenhuma vulnerabilidade
+  conhecida (pip e setuptools do `.venv` foram atualizados).
+
+**Riscos que continuam (declarados no artigo, seção de AI Assurance)**
+- *Prompt injection* indireta: o texto dos PDFs entra no prompt. Um PDF com instruções escondidas
+  pode induzir uma resposta falsa. Barreiras: tools só de leitura, verificador (página lida e
+  números), e nada vira fichamento sem aprovação humana.
+- Dados que saem da máquina: trechos do corpus vão para o provedor escolhido.
+  - Gemini, plano gratuito: o Google usa o conteúdo enviado para melhorar produtos, revisores
+    humanos podem ler, e os termos pedem para não enviar informação confidencial
+    (Gemini API Additional Terms, seção "How Google Uses Your Data", Unpaid Services).
+    Não use o Gemini gratuito com documentos de distribuição restrita.
+  - Groq: por padrão não retém dados de inferência; pode guardar até 30 dias para
+    confiabilidade e abuso (console.groq.com/docs/your-data). A página não fala de treino.
+  - Ollama Cloud: "Prompt or response data is never logged or trained on" (ollama.com/cloud).
+- O verificador não confere se o trecho sustenta o sentido da frase: isso continua sendo da pessoa.
+
 ## Ollama no Docker
 
 O agente usa o contêiner `ollama-novo` (Ollama 0.40.6, porta 11435, contexto de 8192 tokens).
