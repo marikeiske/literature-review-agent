@@ -46,6 +46,13 @@ Mesmas afirmações nos dois lados; conta só as que um acertou e o outro errou.
 | GPT-OSS 120B (Ollama Cloud) | 12/12 (100%) | 0 | 1 | 12 / 0 / 0 (de 12 revisadas) |
 | Nemotron 3 Ultra (Ollama Cloud) | 12/12 (100%) | 0 | 0 | 12 / 0 / 0 (de 12 revisadas) |
 
+## Revisão de sentido (aval_ollama_nemotron-3-ultra_cloud_rag, amostra de 30, semente 2026)
+
+A página citada sustenta a afirmação? (julgamento humano do conteúdo, não só do número da página)
+
+- Revisadas: 30 de 30. Confere: 30, Parcial: 0, Não confere: 0. Confere: 30/30 (100%), IC 95% 89–100%.
+
+
 ## Revisão humana do gabarito (HITL)
 
 - Revisadas: 109 de 109. Corrigir: 21, Aprovada: 88
