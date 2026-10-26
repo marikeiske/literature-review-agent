@@ -1,0 +1,662 @@
+{
+ "_sobre": "Pré-conferência do gabarito feita pelo Claude em 19/10/2026: para cada afirmação, a página foi lida e o trecho que a sustenta foi copiado literalmente (conferido por script). É rascunho: não conta como revisão. A decisão é da autora, na aba Revisar.",
+ "itens": {
+  "A1-01": {
+   "sugestao": "Corrigir",
+   "correcao": "p. 1–2",
+   "pagina": 2,
+   "trecho": "proposal of reconfigurable, low complexity VLSI architecture design for deep learning established forelimb and hindlimb gesture recognition for rehabilitation applications (LoCoMo-Net [12] and MyoNet [13])",
+   "nota": "A p. 1 (resumo) traz a arquitetura e as duas redes, mas não diz qual rede é de qual membro e não usa \"baixa complexidade\". A lista de contribuições da p. 2 traz tudo, e ali também está \"LoCoMo-Net [12] for forelimb amputation and MyoNet [13] for hindlimb amputation\". Os dois modelos do piloto citaram a p. 2. Sugiro aceitar p. 1–2."
+  },
+  "A1-02": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "The ZYNQ ultrascale + MPSoC zcu102 FPGA was used to implement the design.",
+   "nota": ""
+  },
+  "A1-03": {
+   "sugestao": "Aprovada",
+   "pagina": 5,
+   "trecho": "Hence the common operation is kept in the programmable logic part and the varying operations are executed on the processor (processing system).",
+   "nota": "A camada totalmente conectada no processador aparece na frase seguinte da mesma página."
+  },
+  "A1-04": {
+   "sugestao": "Aprovada",
+   "pagina": 5,
+   "trecho": "DDR memory is used as the main memory whereas Block RAMs are used to store interim findings.",
+   "nota": "Os 16 bits de ponto flutuante estão duas frases antes, na mesma página."
+  },
+  "A1-05": {
+   "sugestao": "Aprovada",
+   "pagina": 6,
+   "trecho": "It is observed that there is no reduction in accuracy.",
+   "nota": ""
+  },
+  "A1-06": {
+   "sugestao": "Aprovada",
+   "pagina": 7,
+   "trecho": "The computational time is equal to 1.876 ms for LoCoMo- Net and 61.988 ms for MyoNet.",
+   "nota": "O limite de 300 ms vem na frase seguinte. A observação da planilha (1,879 ms na mesma página) continua valendo."
+  },
+  "A1-07": {
+   "sugestao": "Aprovada",
+   "pagina": 7,
+   "trecho": "The proposed architecture consumes 3.6 Watts and 5 Watts of power on FPGA, 16 Watts and 23 Watts of power on GPU",
+   "nota": "\"4-4.6 times less power than a GPU\" vem logo depois."
+  },
+  "A1-08": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "in 2.046 mm2 of space and 300.8423 mW of power at 1.21 V",
+   "nota": "A p. 7 traz área e potência sem a tensão; a p. 8 (conclusão) também traz \"at 1.21 V\". Se quiser, inclua a p. 8 (Corrigir: p. 1, 7, 8). Não é obrigatório."
+  },
+  "A1-09": {
+   "sugestao": "Aprovada",
+   "pagina": 7,
+   "trecho": "the energy consumed is 1440 J, 0.67 J, and 0.0045 J on GPU, FPGA, and ASIC respectively",
+   "nota": ""
+  },
+  "A1-10": {
+   "sugestao": "Aprovada",
+   "pagina": 8,
+   "trecho": "Less than 20% of the total FPGA resources are consumed",
+   "nota": ""
+  },
+  "A2-01": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "we investigate the different frameworks with respect to their usability, performance, and performance portability on a variety of hardware platforms from different vendors, i.e., GPUs from NVIDIA, AMD, and Intel and Central Processing Units (CPUs) from AMD and Intel.",
+   "nota": ""
+  },
+  "A2-02": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "The most computationally intensive part of our PLSSVM library is solving a system of linear equations using the Conjugate Gradient (CG) method.",
+   "nota": ""
+  },
+  "A2-03": {
+   "sugestao": "Aprovada",
+   "pagina": 5,
+   "trecho": "All parts except solving the system of linear equations using the CG algorithm are negligible, with at most 3.8 % of the runtime share.",
+   "nota": "Está na legenda da Tabela 1."
+  },
+  "A2-04": {
+   "sugestao": "Aprovada",
+   "pagina": 4,
+   "trecho": "This results in additional overheads ranging from a hundred milliseconds to over two minutes",
+   "nota": ""
+  },
+  "A2-05": {
+   "sugestao": "Aprovada",
+   "pagina": 8,
+   "trecho": "hipSYCL already takes 3.8 s while DPC++ needs 7.2 s resulting in a slowdown of factors of 2.3 and 4.5 compared to CUDA",
+   "nota": "No texto extraído, 2^15 aparece como \"215\" (o expoente se perde). Se o agente escrever 2^15, o verificador pode acusar número ausente sem ser erro dele."
+  },
+  "A2-06": {
+   "sugestao": "Aprovada",
+   "pagina": 8,
+   "trecho": "with DPC++ the runtime drops by 38 % from 7.2 s to 4.5 s",
+   "nota": "O que se remove é o atomic add, não o bug. A frase da planilha (\"removendo-o\") fica ambígua, mas a página está certa."
+  },
+  "A2-07": {
+   "sugestao": "Aprovada",
+   "pagina": 8,
+   "trecho": "the average runtime per CG iteration increases from 6.7 s on the P100 to 9.9 s on the Radeon VII Pro",
+   "nota": "Atenção à força da frase: o artigo diz que isso \"could be caused by\" o ajuste para a GP100 e que falta investigar. \"Os autores atribuem\" exagera um pouco; a página está certa."
+  },
+  "A2-08": {
+   "sugestao": "Aprovada",
+   "pagina": 9,
+   "trecho": "it is on average a factor of 24 faster (min 4.3, max 118.4) on the tested CPUs",
+   "nota": ""
+  },
+  "A2-09": {
+   "sugestao": "Aprovada",
+   "pagina": 11,
+   "trecho": "no single backend is the fastest on every hardware platform under test: on NVIDIA GPUs, CUDA was the fastest one, while it was OpenCL on AMD and Intel GPUs.",
+   "nota": ""
+  },
+  "A2-10": {
+   "sugestao": "Aprovada",
+   "pagina": 12,
+   "trecho": "OpenCL is often more performant than SYCL, we would still recommend SYCL for general purpose applications.",
+   "nota": "CUDA e OpenMP estão na p. 11; SYCL na p. 12. As duas páginas estão no gabarito."
+  },
+  "A3-01": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "We argue that the success of EDA-based design relies on the application of four interrelated principles",
+   "nota": "Os quatro princípios vêm em seguida, no resumo e de novo na introdução."
+  },
+  "A3-02": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "The paper discusses to what extent the EDA paradigm can be adapted to general mixed hardware/software (HW/SW) systems design through the application of these principles.",
+   "nota": ""
+  },
+  "A3-03": {
+   "sugestao": "Aprovada",
+   "pagina": 2,
+   "trecho": "Unfortunately, such techniques become intractable for software that has a potentially infinite number of states.",
+   "nota": "Os três obstáculos estão numerados na mesma página (requisitos, síntese/verificação, interação HW/SW)."
+  },
+  "A3-04": {
+   "sugestao": "Aprovada",
+   "pagina": 2,
+   "trecho": "It conjoins two types of requirements: 1) trustworthiness ensuring that nothing bad would happen; and 2) optimization for performance, cost effectiveness, and tradeoffs between them.",
+   "nota": ""
+  },
+  "A3-05": {
+   "sugestao": "Aprovada",
+   "pagina": 3,
+   "trecho": "Trustworthiness and optimization requirements are difficultly reconcilable. As a rule, improving trustworthiness entails nonoptimized use of resources. Conversely, resource optimization may jeopardize trustworthiness.",
+   "nota": ""
+  },
+  "A3-06": {
+   "sugestao": "Aprovada",
+   "pagina": 3,
+   "trecho": "We advocate a shift of focus from formal methods to rigorous system design.",
+   "nota": "\"we put emphasis on correctness by construction\" vem duas frases depois."
+  },
+  "A3-07": {
+   "sugestao": "Aprovada",
+   "pagina": 4,
+   "trecho": "In practice, accountability can be eased through the use of assurance case methodologies.",
+   "nota": "Os dois aspectos (evidência das escolhas e propriedades que continuam valendo) estão na frase anterior."
+  },
+  "A3-08": {
+   "sugestao": "Aprovada",
+   "pagina": 5,
+   "trecho": "A direct consequence of timing anomalies is that safety for worst case execution time (WCET) does not guarantee safety for smaller execution times.",
+   "nota": ""
+  },
+  "A3-09": {
+   "sugestao": "Aprovada",
+   "pagina": 6,
+   "trecho": "The main result is that universal expressiveness can be achieved by combining two types of glue operators: 1) multiparty interaction; and 2) priorities. It has motivated the development of the BIP framework.",
+   "nota": ""
+  },
+  "A3-10": {
+   "sugestao": "Aprovada",
+   "pagina": 10,
+   "trecho": "Even if the identified goals are reached, system design will never achieve the degree of automation of VLSI design",
+   "nota": ""
+  },
+  "A4-01": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "To the best of our knowledge, this is the first time that all this information is collected in a single article.",
+   "nota": ""
+  },
+  "A4-02": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "behind this slow permeation of multicore technology in critical sectors is related to interference problems between cores that need to consume the same resources and how this affects the Worst-Case Execution Time (WCET)",
+   "nota": "O artigo diz \"Most probably\": é uma explicação provável, não uma certeza. Uma nota do editor corta a frase ao meio no PDF."
+  },
+  "A4-03": {
+   "sugestao": "Aprovada",
+   "pagina": 2,
+   "trecho": "only journal articles and conference proceedings are selected, discarding books",
+   "nota": "IEEE Xplore, Science Direct e Google Scholar estão no mesmo parágrafo."
+  },
+  "A4-04": {
+   "sugestao": "Aprovada",
+   "pagina": 5,
+   "trecho": "with up to 30% more latency when compared to running directly on physical hardware",
+   "nota": "O começo da frase (virtualização completa) está no fim da p. 4; o número está na p. 5."
+  },
+  "A4-05": {
+   "sugestao": "Aprovada",
+   "pagina": 6,
+   "trecho": "one of the most important features of ARINC 653 is that it standardizes the interface between the hypervisor/OS and the application layer. This interface is called APEX",
+   "nota": "\"The first draft describing ARINC 653 was published in 1996\" está na mesma página."
+  },
+  "A4-06": {
+   "sugestao": "Aprovada",
+   "pagina": 7,
+   "trecho": "a current car has more than 150 ECUs for different purposes",
+   "nota": "35% e 50% até 2030 estão no mesmo parágrafo."
+  },
+  "A4-07": {
+   "sugestao": "Aprovada",
+   "pagina": 14,
+   "trecho": "only 25% of hypervisors are undoubtedly type 2",
+   "nota": "\"70% of the hypervisors analyzed offer paravirtualization\" está no mesmo parágrafo."
+  },
+  "A4-08": {
+   "sugestao": "Aprovada",
+   "pagina": 16,
+   "trecho": "followed by x86 architectures (50%) and RISC-V architectures (25%) and PowerPC (clearly below with 15%)",
+   "nota": "Linux 85% na p. 14, ARM 70% na p. 15, o resto na p. 16. As três páginas estão no gabarito."
+  },
+  "A4-09": {
+   "sugestao": "Aprovada",
+   "pagina": 17,
+   "trecho": "the United States, Germany and France alone account for 50% of the hypervisors analyzed",
+   "nota": ""
+  },
+  "A4-10": {
+   "sugestao": "Aprovada",
+   "pagina": 17,
+   "trecho": "hypervisors for which there is no ongoing maintenance (Quest-V, Rodosvisor and RTZVisor) should be avoided",
+   "nota": "A recomendação do XtratuM pela API próxima da APEX fecha o mesmo parágrafo."
+  },
+  "A5-01": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "we propose realtime verification design patterns to promote early verification of timing properties in a model-based approach",
+   "nota": "\"They encapsulate the knowledge of a real-time expert in scheduling theory\" vem logo depois."
+  },
+  "A5-02": {
+   "sugestao": "Aprovada",
+   "pagina": 2,
+   "trecho": "The verification of timing properties using analysis tools such as MAST, CHEDDAR, or SIMSO [11–13] is often used exclusively by highly experienced software designers",
+   "nota": ""
+  },
+  "A5-03": {
+   "sugestao": "Aprovada",
+   "pagina": 3,
+   "trecho": "the P2VRT tool provides transformations to three analysis tools; MAST, CHEDDAR, and SIMSO",
+   "nota": "A verificação de consistência está na frase anterior."
+  },
+  "A5-04": {
+   "sugestao": "Aprovada",
+   "pagina": 4,
+   "trecho": "Rate Monotonic (RM) is optimal among all fixed priority schemes for the preemptive scheduling of sporadic or periodic, independent",
+   "nota": ""
+  },
+  "A5-05": {
+   "sugestao": "Aprovada",
+   "pagina": 14,
+   "trecho": "We define two categories that allow calculating two real-time metrics: processor utilization factor and task response time.",
+   "nota": ""
+  },
+  "A5-06": {
+   "sugestao": "Aprovada",
+   "pagina": 22,
+   "trecho": "The hardware architecture is composed of two execution units, which are the body_controller and the engine_management communicating via the CAN bus.",
+   "nota": "As oito funções periódicas estão na frase anterior."
+  },
+  "A5-07": {
+   "sugestao": "Aprovada",
+   "pagina": 27,
+   "trecho": "The designer chooses to apply the Rate Monotonic Independent Task (RMIT) pattern.",
+   "nota": "A frase sobre os padrões ótimos começa no fim da p. 26 (\"The use of the OptimalRM or\") e termina na p. 27. A p. 27 basta."
+  },
+  "A5-08": {
+   "sugestao": "Corrigir",
+   "correcao": "p. 30–31",
+   "pagina": 31,
+   "trecho": "When we apply our patterns, the three analysis tools produce the same response times for all tasks.",
+   "nota": "A p. 30 sustenta só a primeira metade (tempos de resposta abaixo do deadline, projeto viável). Que CHEDDAR e SIMSO conferem o MAST está na p. 31, e com uma ressalva: sem os padrões, o SIMSO diverge (6 ms contra 38 ms no controller). Explica por que o GPT-OSS recusou no piloto. Sugiro p. 30–31."
+  },
+  "A5-09": {
+   "sugestao": "Aprovada",
+   "pagina": 36,
+   "trecho": "they are dependent on the application of the design pattern, which is still manual in this work",
+   "nota": "O repositório público está no fim da mesma página."
+  },
+  "A5-10": {
+   "sugestao": "Aprovada",
+   "pagina": 39,
+   "trecho": "this type of verification must be supplemented with other verification techniques such as formal methods [8] and safety analysis [43].",
+   "nota": ""
+  },
+  "A6-01": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "In this paper we present Open Multi-Processing (OpenMP) Fortran 90/95 versions of previously published numerical programs for solving the dipolar Gross-Pitaevskii (GP) equation including the contact interaction in one, two and three spatial dimensions.",
+   "nota": ""
+  },
+  "A6-02": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "The algorithm used is the split-step semi-implicit Crank- Nicolson scheme for imaginary- and real-time propagation to obtain stationary states and BEC dynamics, respectively",
+   "nota": ""
+  },
+  "A6-03": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "The program is tested with the GNU, Intel, and Oracle (former Sun) compilers.",
+   "nota": "\"Licensing provisions: Apache License 2.0\" está na mesma página."
+  },
+  "A6-04": {
+   "sugestao": "Aprovada",
+   "pagina": 2,
+   "trecho": "However, in 1D the supplied programs are autoparallel versions as there is no further reduction in the execution time in the OpenMP versions.",
+   "nota": ""
+  },
+  "A6-05": {
+   "sugestao": "Aprovada",
+   "pagina": 2,
+   "trecho": "the 1D and 2D dipolar programs in previous publications [3, 8, 9] erroneously used the 3D nonlinearities",
+   "nota": ""
+  },
+  "A6-06": {
+   "sugestao": "Aprovada",
+   "pagina": 2,
+   "trecho": "The FFT algorithm works faster and more efficiently when we take the number of space grid points",
+   "nota": "\"in powers of 2\" fecha a mesma frase."
+  },
+  "A7-01": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "This paper proposes a vendor-independent open source method for integrating custom FPGA accelerators into a common OpenCL platform.",
+   "nota": ""
+  },
+  "A7-02": {
+   "sugestao": "Aprovada",
+   "pagina": 2,
+   "trecho": "To solve the poor interoperability between vendor implementations we utilize Portable Computing Language (PoCL, [5]), which is an open source OpenCL implementation.",
+   "nota": "A má coordenação entre fabricantes também aparece no resumo (p. 1)."
+  },
+  "A7-03": {
+   "sugestao": "Aprovada",
+   "pagina": 3,
+   "trecho": "The proposed interface has been under active development under the name AlmaIF",
+   "nota": ""
+  },
+  "A7-04": {
+   "sugestao": "Aprovada",
+   "pagina": 7,
+   "trecho": "The first accelerator is a customized software programmable architecture generated with OpenASIP tools [19]. The second is created with Vitis HLS 2020.2",
+   "nota": "Zynq XC7Z020 e Alveo U280 estão na mesma página."
+  },
+  "A7-05": {
+   "sugestao": "Aprovada",
+   "pagina": 8,
+   "trecho": "The programmable OpenASIP accelerators have approximately three times the resource utilization of the HLS-generated one due to the added flexibility it has due to programmability.",
+   "nota": ""
+  },
+  "A7-06": {
+   "sugestao": "Aprovada",
+   "pagina": 8,
+   "trecho": "the breakeven point where DMA and BRAM-based approaches reach the same performance is at a transfer size of about 4000 bytes",
+   "nota": ""
+  },
+  "A7-07": {
+   "sugestao": "Aprovada",
+   "pagina": 8,
+   "trecho": "the system with DMA is able to finish the application at best 8 times faster compared to the baseline case with the copy initiated by the host CPU",
+   "nota": ""
+  },
+  "A7-08": {
+   "sugestao": "Aprovada",
+   "pagina": 8,
+   "trecho": "With the proposed method, the average run-time is now brought down to 67 μs.",
+   "nota": "313 μs e 246 μs estão na mesma página. A observação da planilha (250 μs no resumo e na conclusão) continua valendo."
+  },
+  "A7-09": {
+   "sugestao": "Corrigir",
+   "correcao": "p. 1, 2, 8",
+   "pagina": 2,
+   "trecho": "An end-to-end audio Convolutional Neural Network (CNN) application case study starting from microphone input to a classification result.",
+   "nota": "A p. 1 traz a plataforma com dois dispositivos controlada por OpenCL e a inferência de CNN. \"Do microfone à classificação\" só aparece na p. 2 (contribuições). Na p. 8 começa a seção 7.4, sem esses detalhes. Sugiro incluir a p. 2."
+  },
+  "A7-10": {
+   "sugestao": "Aprovada",
+   "pagina": 10,
+   "trecho": "In the future, the work will be expanded to support OpenCL pipes for more efficient on-chip streaming for software kernels.",
+   "nota": ""
+  },
+  "A8-01": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "we thoroughly evaluate the impact of CUDA toolkit version on the performance, power consumption, and energy consumption of GPU applications with four GPU architectures",
+   "nota": "Os nomes das GPUs (P100, V100, A100, H100) estão na p. 2. As duas páginas estão no gabarito."
+  },
+  "A8-02": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "we compiled 32 kernels selected from 19 CUDA applications for four different GPU architectures using nine CUDA versions",
+   "nota": "A observação da planilha sobre a divergência interna continua valendo."
+  },
+  "A8-03": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "the object code generated from an application code with an older CUDA toolkit performs (up to 20%) better than one generated with the latest toolkit",
+   "nota": ""
+  },
+  "A8-04": {
+   "sugestao": "Aprovada",
+   "pagina": 4,
+   "trecho": "CUDA8F produces a 1.16× slowdown on the Tesla P100 GPU compared to CUDA12M, and this slowdown decreases gradually as CUDA versions are updated",
+   "nota": "A p. 1 diz o mesmo sem nomear o CUDA8F (\"the oldest CUDA version\")."
+  },
+  "A8-05": {
+   "sugestao": "Aprovada",
+   "pagina": 4,
+   "trecho": "the performance difference when going from CUDA9L to CUDA11L on the Tesla P100, NVIDIA V100 and NVIDIA A100 GPUs is within 12%, 4%, and 1%, respectively",
+   "nota": ""
+  },
+  "A8-06": {
+   "sugestao": "Aprovada",
+   "pagina": 4,
+   "trecho": "The difference in power consumption caused by the CUDA version is relatively small on all GPUs (only ±2%)",
+   "nota": ""
+  },
+  "A8-07": {
+   "sugestao": "Aprovada",
+   "pagina": 4,
+   "trecho": "We repeatedly called nvidia-smi at 1 ms intervals.",
+   "nota": ""
+  },
+  "A8-08": {
+   "sugestao": "Aprovada",
+   "pagina": 4,
+   "trecho": "CUDA8F and CUDA8L obtain the shortest execution time of 1.84 s, which is 80% of the execution time of CUDA12M (2.31 s)",
+   "nota": "A causa (desenrolamento agressivo) é o título da seção 4.2, na mesma página; a explicação pelos registradores continua na p. 6."
+  },
+  "A8-09": {
+   "sugestao": "Aprovada",
+   "pagina": 6,
+   "trecho": "CUDA12M obtains the shortest execution time of 1.55 s, which is less than that of CUDA8F and CUDA8L without maxrregcount",
+   "nota": ""
+  },
+  "A8-10": {
+   "sugestao": "Aprovada",
+   "pagina": 8,
+   "trecho": "CUDA9L and CUDA10F obtain the shortest execution time of 0.19 s, which is 67% of the execution time of CUDA12F (0.28 s)",
+   "nota": ""
+  },
+  "A8-11": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "Our analysis showed that the factors that caused them are by three phenomena: aggressive loop unrolling, inefficient instruction scheduling, and the impact of host compilers.",
+   "nota": ""
+  },
+  "A9-01": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "The contents of the document do not have the force and effect of law and are not meant to bind the public in any way.",
+   "nota": "\"acceptable means of compliance ... for multi-core processors (MCP)\" está na frase anterior."
+  },
+  "A9-02": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "2.3 The AC does not apply when the IDALs are all level D or E.",
+   "nota": "A condição \"two or more activated cores\" com IDAL A, B ou C está no item 2.2, logo acima."
+  },
+  "A9-03": {
+   "sugestao": "Aprovada",
+   "pagina": 2,
+   "trecho": "This AC assumes that software applications are statically allocated to cores during MCP startup but not during the subsequent operation of the software.",
+   "nota": ""
+  },
+  "A9-04": {
+   "sugestao": "Aprovada",
+   "pagina": 2,
+   "trecho": "This AC does not cover simultaneous multithreading, as industry and the certification authorities’ knowledge and experience of such features are currently insufficient",
+   "nota": ""
+  },
+  "A9-05": {
+   "sugestao": "Aprovada",
+   "pagina": 3,
+   "trecho": "This category includes the case where the cores only act as co-processors or graphics processors, each under the control of another core that executes software.",
+   "nota": "Precisão: o AC diz que os objetivos não se aplicam às interações entre esses núcleos (\"do not apply to the interactions\"), não aos núcleos em si. A página está certa."
+  },
+  "A9-06": {
+   "sugestao": "Aprovada",
+   "pagina": 3,
+   "trecho": "These delays are a form of time interference between the software applications or tasks, which can cause the software applications to take much longer to execute than when executing on their own.",
+   "nota": ""
+  },
+  "A9-07": {
+   "sugestao": "Aprovada",
+   "pagina": 5,
+   "trecho": "no software partition consumes more than its allocation of execution time on the core(s) on which it executes, irrespective of whether partitions are executing on none of the other active cores or on all of the other active cores",
+   "nota": ""
+  },
+  "A9-08": {
+   "sugestao": "Aprovada",
+   "pagina": 8,
+   "trecho": "(This might not be desirable for cores hosting safety-critical software applications.)",
+   "nota": ""
+  },
+  "A9-09": {
+   "sugestao": "Aprovada",
+   "pagina": 10,
+   "trecho": "The WCET of a software component or task may increase significantly when other software components or tasks are executing in parallel on the other cores of an MCP.",
+   "nota": ""
+  },
+  "A9-10": {
+   "sugestao": "Aprovada",
+   "pagina": 11,
+   "trecho": "may verify software applications separately on the MCP and determine their WCETs separately",
+   "nota": ""
+  },
+  "A9-11": {
+   "sugestao": "Aprovada",
+   "pagina": 13,
+   "trecho": "MCP_Resource_Usage_4 Yes No",
+   "nota": "Vem da tabela da seção 5.8: \"MCP_Error_Handling_1 Yes No\" na mesma página."
+  },
+  "A10-01": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "So far, only low-level programming models and APIs, such as CUDA or OpenCL have been evaluated. In this paper, we evaluate the effectiveness of a higher level programming model, SYCL, for critical applications executed in such embedded platforms.",
+   "nota": ""
+  },
+  "A10-02": {
+   "sugestao": "Aprovada",
+   "pagina": 1,
+   "trecho": "a high-performance platform featuring an NVIDIA GTX 1080Ti as well as a representative embedded platform, the NVIDIA Xavier AGX",
+   "nota": "GPU4S Bench e o detector de pedestres estão na frase anterior."
+  },
+  "A10-03": {
+   "sugestao": "Aprovada",
+   "pagina": 2,
+   "trecho": "Khronos is currently investigating with an Exploratory Group the introduction of SYCL SC (Safety Critical), a subset of the SYCL API which will target safety critical systems",
+   "nota": ""
+  },
+  "A10-04": {
+   "sugestao": "Aprovada",
+   "pagina": 2,
+   "trecho": "OBPMark is the official ESA benchmarking suite used for all new ESA projects",
+   "nota": ""
+  },
+  "A10-05": {
+   "sugestao": "Aprovada",
+   "pagina": 3,
+   "trecho": "From the two memory models, USM offers a reasonable trade-off among compliance with safety critical guidelines, complexity and performance.",
+   "nota": "Buffers mais fácil e mais lento, e USM com ponteiros desencorajados, estão no começo da seção 3, na mesma página."
+  },
+  "A10-06": {
+   "sugestao": "Aprovada",
+   "pagina": 4,
+   "trecho": "At 15W, power mode 2 offers 4 CPU cores running at 1200MHz and the 8 SMs of the GPU running at 670MHz.",
+   "nota": ""
+  },
+  "A10-07": {
+   "sugestao": "Aprovada",
+   "pagina": 5,
+   "trecho": "We suspect that this difference is in part due to the inability to set the number of CPU threads in SYCL.",
+   "nota": "\"both SYCL variants are outperformed by OpenMP\" vem logo antes."
+  },
+  "A10-08": {
+   "sugestao": "Aprovada",
+   "pagina": 7,
+   "trecho": "This is the case of convolution, local response normalisation (LRN), softmax and wavelet transform.",
+   "nota": "Precisão: na mesma página o SYCL Buffer continua abaixo do OpenMP; quem vence é o SYCL USM."
+  },
+  "A10-09": {
+   "sugestao": "Aprovada",
+   "pagina": 7,
+   "trecho": "In the case of the FFT, the highest performance is achieved by the SYCL USM version, which is marginally faster than the NVIDIA",
+   "nota": "A frase termina na p. 8 (\"library implementation (cuFFT)\"). As duas páginas estão no gabarito."
+  },
+  "A10-10": {
+   "sugestao": "Aprovada",
+   "pagina": 10,
+   "trecho": "reaching 16.02 FPS which is slightly faster than the FPS performance of the manual optimised CUDA implementation (15.55 FPS)",
+   "nota": "\"we stay around 0.54 FPS while on CUDA 5 FPS are reached\" na mesma página."
+  },
+  "A10-11": {
+   "sugestao": "Aprovada",
+   "pagina": 10,
+   "trecho": "in the future we want to evaluate Intel’s DPC++ Compatibility Tool",
+   "nota": ""
+  },
+  "A11-01": {
+   "sugestao": "Aprovada",
+   "pagina": 4,
+   "trecho": "Development follows the DO-178 for the software, and the DO-254 for the hardware",
+   "nota": "Fonte são slides; o texto do slide é curto, mas sustenta a afirmação inteira."
+  },
+  "A11-02": {
+   "sugestao": "Aprovada",
+   "pagina": 5,
+   "trecho": "Those facts have impact on the avionics systems domain as the system complexity increases exponentially from one generation to the next",
+   "nota": ""
+  },
+  "A11-03": {
+   "sugestao": "Aprovada",
+   "pagina": 6,
+   "trecho": "use of domain-specific architectures (DSA) instead of the general-purpose (GP) ones",
+   "nota": "As duas áreas de pesquisa (arquiteturas abertas, computação reconfigurável em SoC com FPGA) estão no mesmo slide."
+  },
+  "A11-04": {
+   "sugestao": "Aprovada",
+   "pagina": 7,
+   "trecho": "To discuss next challenges of future avionics systems considering the safety-critical aspects",
+   "nota": ""
+  },
+  "A11-05": {
+   "sugestao": "Aprovada",
+   "pagina": 8,
+   "trecho": "there are four standards typically required to be used as part of the aircraft certification process",
+   "nota": "Os nomes das normas estão só na figura do slide. A afirmação não os lista, então a página está certa."
+  },
+  "A11-06": {
+   "sugestao": "Aprovada",
+   "pagina": 11,
+   "trecho": "May take hours to compile and synthetize",
+   "nota": "Vem da tabela do slide: CPU, GPU e FPGA estão todos ali."
+  },
+  "A11-07": {
+   "sugestao": "Aprovada",
+   "pagina": 14,
+   "trecho": "These architectures can be applied to the avionics systems domain, as far as they are able to provide the safety inherent from this domain",
+   "nota": ""
+  },
+  "A11-08": {
+   "sugestao": "Aprovada",
+   "pagina": 17,
+   "trecho": "using them depending on the present context to address challenges such as SWaP",
+   "nota": "Redundância N-modular e RISC por reconfiguração parcial estão no mesmo slide."
+  },
+  "A11-09": {
+   "sugestao": "Aprovada",
+   "pagina": 18,
+   "trecho": "Contributes to minimizing single event upset (SEU)",
+   "nota": ""
+  },
+  "A11-10": {
+   "sugestao": "Aprovada",
+   "pagina": 19,
+   "trecho": "how to ensure the reconfiguration is safely performed in a deterministic way?",
+   "nota": ""
+  }
+ }
+}

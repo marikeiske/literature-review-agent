@@ -1,0 +1,110 @@
+﻿id;artigo;tipo;posicao;paginas_gabarito;paginas_citadas;acerto_exato;acerto_vizinha;recusa;grounding_falso;numero_ausente;chamadas;segundos;status_gabarito;resposta
+A1-01;Nimbekar2023;Contribuição;início;1 2;2;1;1;0;0;0;1;4.8;Corrigir;- Arquitetura VLSI reconfigurável para LoCoMo-Net (membro superior) e MyoNet (membro inferior) [Nimbekar2023 p.2]
+A2-01;Breyer2022;Contribuição;início;1;1;1;1;0;0;0;1;1.4;Aprovada;- Comparação de OpenMP, CUDA, OpenCL e SYCL (hipSYCL e DPC++) em usabilidade, desempenho e portabilidade em GPUs (NVIDIA, AMD, Intel) e CPUs (AMD, Intel) [Breyer2022 p.1]
+A3-01;Sifakis2015;Contribuição;início;1;1;1;1;0;0;0;1;1.1;Aprovada;- O sucesso da EDA baseia-se em separação de interesses, projeto baseado em componentes, coerência semântica e correção por construção [Sifakis2015 p.1].
+A4-01;Lozano2023;Contribuição;início;1;1;1;1;0;0;0;1;2.2;Aprovada;- Revisão abrangente de hipervisores para sistemas embarcados críticos com comparação qualitativa, sendo a primeira a reunir tais informações [Lozano2023 p.1].
+A5-01;Mzid2024;Contribuição;início;1;1;1;1;0;0;0;1;3.0;Aprovada;- Propõe padrões de projeto de verificação de tempo real que encapsulam o conhecimento de um especialista em escalonamento para verificação precoce de propriedades temporais [Mzid2024 p.1].
+A6-01;YoungS2023;Contribuição;meio;1;1;1;1;0;0;0;1;0.6;Aprovada;- Versões OpenMP em Fortran 90/95 de programas para a equação de GP dipolar com interação de contato em 1D, 2D e 3D [YoungS2023 p.1]
+A7-01;Leppanen2023;Contribuição;início;1;1;1;1;0;0;0;1;1.5;Corrigir;- Propõe método aberto e independente de fabricante para integrar aceleradores FPGA via interface de hardware comum [Leppanen2023 p.1].
+A8-01;Yoshida2024;Contribuição;início;1 2;1;1;1;0;0;0;1;1.0;Aprovada;- Avalia o impacto da versão do CUDA toolkit no desempenho, potência e energia em quatro arquiteturas de GPU (P100, V100, A100 e H100) [Yoshida2024 p.1]
+A9-01;FAA2024;Contribuição;início;1;1;1;1;0;0;0;1;0.8;Aprovada;- O AC 20-193 descreve meio de cumprimento para MCPs e não possui força de lei [FAA2024 p.1].
+A10-01;PeraltaQuesada2023;Contribuição;início;1;1;1;1;0;0;0;1;1.1;Aprovada;- Avalia o SYCL (alto nível) quanto a desempenho e programabilidade em aplicações críticas em plataformas embarcadas, contrastando com avaliações anteriores focadas em modelos de baixo nível (CUDA/OpenCL) [PeraltaQuesada2023 p.1].
+A11-01;Loubach2019;Contexto;início;4;4;1;1;0;0;0;1;0.6;Corrigir;- A indústria de aviônica é conservadora devido a requisitos de segurança crítica, seguindo as normas DO-178 para software e DO-254 para hardware [Loubach2019 p.4].
+A1-03;Nimbekar2023;Método;meio;5;5;1;1;0;0;0;1;0.6;Aprovada;- Operações comuns na lógica programável e operações variáveis no processador [Nimbekar2023 p.5]
+A2-03;Breyer2022;Resultado;meio;5;5;1;1;0;0;0;1;0.9;Aprovada;"- Resolver o sistema linear (CG) domina o tempo de execução; as demais partes ocupam no máximo 3,8% do tempo [Breyer2022 p.5]."
+A3-07;Sifakis2015;Conceito;meio;4;4;1;1;0;0;0;1;0.6;Aprovada;- Responsabilização (accountability) envolve evidências de escolhas baseadas em requisitos, preservação de propriedades e uso de assurance cases [Sifakis2015 p.4].
+A4-06;Lozano2023;Contexto;meio;7;7;1;1;0;0;0;1;1.1;Aprovada;- A eletrônica responde por 35% do custo do veículo (previsão de 50% até 2030) e carros atuais possuem mais de 150 ECUs [Lozano2023 p.7].
+A5-06;Mzid2024;Método;meio;22;22;1;1;0;0;0;1;0.8;Aprovada;- Estudo de caso de sistema de controle de cruzeiro com oito funções periódicas e duas unidades de execução (body_controller e engine_management) via barramento CAN [Mzid2024 p.22].
+A6-04;YoungS2023;Resultado;fim;2;2;1;1;0;0;0;1;0.5;Aprovada;- Os programas 3D e 2D são OpenMP, enquanto em 1D são versões autoparalelas por não haver redução adicional no tempo de execução [YoungS2023 p.2].
+A7-04;Leppanen2023;Método;meio;7;7;1;1;0;0;0;1;1.5;Aprovada;- Avaliação com aceleradores OpenASIP e Vitis HLS nos FPGAs Zynq XC7Z020 e Alveo U280 [Leppanen2023 p.7]
+A8-05;Yoshida2024;Resultado;meio;4;4;1;1;0;0;0;1;0.7;Aprovada;- As diferenças entre versões diminuem nas arquiteturas mais novas: de CUDA9L para CUDA11L ficam em até 12% (P100), 4% (V100) e 1% (A100) [Yoshida2024 p.4].
+A9-08;FAA2024;Recomendação;meio;8;8;1;1;0;0;0;1;0.6;Aprovada;- Recursos dinâmicos de economia de energia podem não ser desejáveis para núcleos com software crítico [FAA2024 p.8].
+A10-06;PeraltaQuesada2023;Método;meio;4;4;1;1;0;0;1;1;0.8;Aprovada;- Na Xavier AGX foi usado o modo de potência 2 (15 W), com 4 núcleos de CPU a 1200 MHz e 8 SMs da GPU a 670 MHz, devido a limitações de dissipação de calor no espaço [PeraltaQuesada2023 p.4].
+A11-05;Loubach2019;Contexto;meio;8;8;1;1;0;0;0;1;0.5;Aprovada;- Quatro normas são tipicamente exigidas no processo de certificação de aeronaves [Loubach2019 p.8]
+A1-06;Nimbekar2023;Resultado;fim;7;7;1;1;0;0;0;1;0.7;Aprovada;- O tempo de reconhecimento no FPGA é 1,876 ms (LoCoMo-Net) e 61,988 ms (MyoNet), abaixo do limite de 300 ms para controle protético [Nimbekar2023 p.7].
+A2-08;Breyer2022;Resultado;fim;9;9;1;1;0;0;0;1;0.8;Aprovada;- O kernel hierárquico do hipSYCL em CPUs é em média 24× mais rápido que o nd_range, exigindo a manutenção de duas versões do código [Breyer2022 p.9].
+A3-10;Sifakis2015;Conclusão;fim;10;10;1;1;0;0;0;1;0.8;Aprovada;- O projeto de sistemas nunca atingirá o grau de automação do projeto VLSI [Sifakis2015 p.10]
+A4-07;Lozano2023;Resultado;fim;14;17;0;0;0;0;1;1;1.0;Aprovada;- 70% dos hipervisores oferecem paravirtualização e 25% são do tipo 2 [Lozano2023 p.17]
+A5-08;Mzid2024;Resultado;fim;30 31;;0;0;0;0;0;1;0.9;Corrigir;- Com o padrão RMIT, as tarefas têm tempo de resposta menor que o deadline e o projeto é viável, com resultados conferidos por MAST, CHEDDAR e SIMSO [Mzid2024 p.29-31].
+A6-02;YoungS2023;Método;meio;1;1;1;1;0;0;0;1;0.5;Aprovada;- Usa o esquema split-step semi-implícito de Crank-Nicolson para propagação em tempo imaginário e real [YoungS2023 p.1].
+A7-05;Leppanen2023;Resultado;fim;8;8;1;1;0;0;0;1;0.9;Aprovada;- Aceleradores OpenASIP usam cerca de três vezes os recursos do gerado por HLS devido à programabilidade [Leppanen2023 p.8]
+A8-10;Yoshida2024;Resultado;fim;8;8;1;1;0;0;0;1;0.7;Aprovada;- No likelihood_kernel na A100, CUDA9L e CUDA10F levam 0,19 s (67% do tempo do CUDA12F) devido à implementação de pow() do compilador host GCC [Yoshida2024 p.8].
+A9-11;FAA2024;Resultado;fim;13;13;1;1;0;0;0;1;0.6;Aprovada;- Os objetivos MCP_Resource_Usage_4 e MCP_Error_Handling_1 são exigidos para IDAL A ou B, mas não para IDAL C [FAA2024 p.13].
+A10-10;PeraltaQuesada2023;Resultado;fim;10;10;1;1;0;0;0;1;0.7;Aprovada;- No detector de pedestres, a versão final SYCL atingiu 16,02 FPS no servidor (superando os 15,55 FPS do CUDA) e 0,54 FPS na Xavier (contra 5 FPS do CUDA) [PeraltaQuesada2023 p.10].
+A11-08;Loubach2019;Exemplo;fim;17;17;1;1;0;0;0;1;0.5;Aprovada;- Exemplos de aplicação: redundância N-modular, processadores RISC com reconfiguração parcial e rádio definido por software para desafios de SWaP [Loubach2019 p.17].
+A1-02;Nimbekar2023;Método;início;1;1;1;1;0;0;0;1;0.6;Aprovada;- O projeto foi implementado no FPGA Zynq UltraScale+ MPSoC ZCU102 [Nimbekar2023 p.1].
+A2-02;Breyer2022;Método;início;1;1;1;1;0;0;0;1;1.5;Aprovada;- A carga de trabalho é a biblioteca PLSSVM (LS-SVM), cuja parte mais custosa é resolver um sistema linear pelo método do Gradiente Conjugado [Breyer2022 p.1].
+A3-02;Sifakis2015;Contribuição;início;1;1;1;1;0;0;0;1;0.7;Aprovada;- O paradigma da EDA adaptado ao projeto de sistemas mistos HW/SW [Sifakis2015 p.1]
+A4-02;Lozano2023;Contexto;início;1;1;1;1;0;0;0;1;0.8;Aprovada;- Adoção lenta de multicore em setores críticos devido a interferências em recursos compartilhados e impacto no WCET [Lozano2023 p.1]
+A5-02;Mzid2024;Contexto;início;2;2;1;1;0;0;0;1;0.7;Aprovada;- A análise de escalonamento é vista como difícil e ferramentas como MAST, CHEDDAR e SIMSO são usadas majoritariamente por projetistas experientes [Mzid2024 p.2].
+A6-05;YoungS2023;Correção;fim;2;2;1;1;0;0;0;1;0.5;Aprovada;- Os programas 1D e 2D de publicações anteriores usavam erroneamente não linearidades 3D, erro inexistente nas versões do arXiv [YoungS2023 p.2].
+A7-02;Leppanen2023;Contexto;início;2;;0;0;0;0;0;1;0.9;Aprovada;- Implementações OpenCL de fabricantes coordenam mal dispositivos diferentes e a PoCL é utilizada para resolver isso [Leppanen2023 p.1, 2].
+A8-02;Yoshida2024;Método;início;1;1;1;1;0;0;0;1;0.6;Aprovada;- Compilaram 32 kernels de 19 aplicações com nove versões do CUDA [Yoshida2024 p.1]
+A9-02;FAA2024;Escopo;início;1;1;1;1;0;0;0;1;1.5;Aprovada;- Aplica-se a MCPs com dois ou mais núcleos ativados e IDAL A, B ou C, e não se aplica se todos forem D ou E [FAA2024 p.1].
+A10-02;PeraltaQuesada2023;Método;início;1;1;1;1;0;0;0;1;0.6;Aprovada;- Usa a suíte GPU4S Bench, aplicação de detecção de pedestres, NVIDIA GTX 1080Ti e NVIDIA Xavier AGX [PeraltaQuesada2023 p.1]
+A11-02;Loubach2019;Contexto;início;5;5;1;1;0;0;0;1;0.5;Aprovada;- Melhorar o desempenho via arquitetura está mais difícil devido ao fim do escalonamento de Dennard e desaceleração da Lei de Moore, impactando a complexidade exponencial da aviônica [Loubach2019 p.5].
+A1-04;Nimbekar2023;Método;meio;5;5;1;1;0;0;0;1;0.7;Aprovada;- Operações em ponto flutuante de 16 bits, memória DDR como principal e BRAMs para resultados intermediários [Nimbekar2023 p.5].
+A2-05;Breyer2022;Resultado;meio;8;8;1;1;0;0;1;1;0.8;Aprovada;- Na P100 com 2^15 pontos, CUDA (1,6 s) e OpenCL (1,7 s) são mais rápidos que hipSYCL (3,8 s) e DPC++ (7,2 s) [Breyer2022 p.8]
+A3-08;Sifakis2015;Argumento;meio;5;5;1;1;0;0;0;1;10.2;Aprovada;- Segurança para WCET não garante segurança para tempos menores devido a anomalias temporais [Sifakis2015 p.5].
+A4-08;Lozano2023;Resultado;fim;14 15 16;17;0;1;0;0;1;1;1.3;Aprovada;- Linux é o SO convidado mais comum (até 85%) e ARM a arquitetura mais suportada (70%), seguida de x86 (50%), RISC-V (25%) e PowerPC (15%) [Lozano2023 p.17]
+A5-07;Mzid2024;Resultado;meio;27;27;1;1;0;0;0;1;0.9;Aprovada;- Deadlines diferentes de períodos no estudo de caso causam problemas de consistência com padrões ótimos de RM e DM, levando à adoção do padrão RMIT [Mzid2024 p.27].
+A6-03;YoungS2023;Método;meio;1;1;1;1;0;0;0;1;0.5;Aprovada;- Programas testados com compiladores GNU, Intel e Oracle e sob licença Apache 2.0 [YoungS2023 p.1]
+A7-06;Leppanen2023;Resultado;fim;8;8;1;1;0;0;0;1;0.9;Aprovada;- O ponto de equilíbrio entre DMA e BRAM é de cerca de 4000 bytes [Leppanen2023 p.8].
+A8-07;Yoshida2024;Método;meio;4;4;1;1;0;0;0;1;0.6;Aprovada;- A potência foi medida com nvidia-smi em intervalos de 1 ms [Yoshida2024 p.4].
+A9-09;FAA2024;Conceito;meio;10;10;1;1;0;0;0;1;2.7;Aprovada;- O WCET de um componente pode aumentar significativamente com a execução paralela em outros núcleos, comprometendo a função crítica [FAA2024 p.10].
+A10-07;PeraltaQuesada2023;Resultado;meio;5;5;1;1;0;0;0;1;0.7;Corrigir;- No servidor x86_64, as variantes SYCL são superadas pelo OpenMP na CPU, possivelmente devido à impossibilidade de definir o número de threads no SYCL [PeraltaQuesada2023 p.5].
+A11-06;Loubach2019;Conceito;meio;11;11;1;1;0;0;0;1;0.7;Corrigir;- CPU (escalar), GPU (vetorial) e FPGA (lógica programável) e suas respectivas características de desempenho e limitações [Loubach2019 p.11]
+A1-07;Nimbekar2023;Resultado;fim;7;7;1;1;0;0;0;1;0.7;Aprovada;- A potência no FPGA (3,6 W e 5 W) é 4-4,6 vezes menor que na GPU Jetson TX2 (16 W e 23 W) [Nimbekar2023 p.7].
+A2-09;Breyer2022;Conclusão;fim;11;11;1;1;0;0;0;1;0.8;Aprovada;- Nenhum backend é o mais rápido em todo hardware: CUDA nas GPUs NVIDIA, OpenCL nas GPUs AMD e Intel, e DPC++ nas CPUs [Breyer2022 p.11].
+A3-03;Sifakis2015;Contexto;início;2;2;1;1;0;0;0;1;0.8;Aprovada;- Três obstáculos: formalização de requisitos, intratabilidade de síntese/verificação e interação HW/SW [Sifakis2015 p.2]
+A4-03;Lozano2023;Método;início;2;2;1;1;0;0;0;1;1.1;Aprovada;- A busca foi feita no IEEE Xplore, Science Direct e Google Scholar, selecionando apenas artigos de periódicos e anais e descartando livros [Lozano2023 p.2].
+A5-09;Mzid2024;Limitação;fim;36;36;1;1;0;0;0;1;0.9;Aprovada;- A aplicação dos padrões é manual e os modelos, padrões e código da ferramenta estão em repositório público [Mzid2024 p.36].
+A6-06;YoungS2023;Método;fim;2;2;1;1;0;0;0;1;0.5;Aprovada;- A FFT fica mais eficiente com número de pontos da grade em potência de 2 [YoungS2023 p.2].
+A7-03;Leppanen2023;Método;início;3;3;1;1;0;0;0;1;0.8;Aprovada;- A interface de hardware comum se chama AlmaIF [Leppanen2023 p.3]
+A8-03;Yoshida2024;Resultado;início;1;1;1;1;0;0;0;1;0.6;Aprovada;- Código de versão antiga até 20% melhor que a mais recente [Yoshida2024 p.1]
+A9-03;FAA2024;Limitação;início;2;2;1;1;0;0;0;1;0.7;Aprovada;- Não cobre a realocação dinâmica de aplicações, supondo alocação estática na inicialização [FAA2024 p.2].
+A10-11;PeraltaQuesada2023;Limitação;fim;10;10;1;1;0;0;0;1;0.6;Aprovada;- Avaliar outras implementações de SYCL (como a da Intel) e a ferramenta DPC++ Compatibility Tool como trabalho futuro [PeraltaQuesada2023 p.10].
+A11-09;Loubach2019;Resultado;fim;18;18;1;1;0;0;0;1;0.5;Corrigir;- Reuso de hardware, minimização de SEU e controle de consumo de energia e desempenho [Loubach2019 p.18]
+A1-08;Nimbekar2023;Resultado;início;1 7;1;1;1;0;0;0;1;0.6;Aprovada;- A síntese em tecnologia GF 40 nm ocupa 2,046 mm² e consome 300,8423 mW a 1,21 V [Nimbekar2023 p.1]
+A2-04;Breyer2022;Método;início;4;4;1;1;0;0;0;1;0.8;Corrigir;- OpenCL compila kernels por JIT com overhead de cem milissegundos a mais de dois minutos [Breyer2022 p.4]
+A3-09;Sifakis2015;Resultado;meio;6;6;1;1;0;0;0;1;1.0;Aprovada;- Expressividade universal obtida por interação multipartidária e prioridades, motivando o framework BIP [Sifakis2015 p.6].
+A4-09;Lozano2023;Resultado;fim;17;17;1;1;0;0;0;1;1.0;Aprovada;- EUA, Alemanha e França respondem por 50% dos hipervisores analisados [Lozano2023 p.17]
+A5-03;Mzid2024;Contribuição;início;3;3;1;1;0;0;0;1;0.8;Aprovada;- Propõe o processo P2VRT e ferramenta com geração automática de modelos para MAST, CHEDDAR e SIMSO e verificação de consistência [Mzid2024 p.3]
+A7-07;Leppanen2023;Resultado;fim;8;8;1;1;0;0;0;1;0.8;Aprovada;- Com grande volume de dados, o sistema com DMA termina até 8 vezes mais rápido que a cópia iniciada pelo host [Leppanen2023 p.8].
+A8-08;Yoshida2024;Resultado;meio;4;4;1;1;0;0;0;1;0.8;Aprovada;- No FiniteDifferencesKernel na P100, CUDA8F e CUDA8L levam 1,84 s (80% do tempo do CUDA12M) devido ao desenrolamento de laço agressivo [Yoshida2024 p.4].
+A9-10;FAA2024;Método;meio;11;11;1;1;0;0;0;1;0.7;Corrigir;- Plataformas com particionamento robusto permitem verificação e WCET separados, enquanto as demais exigem teste na configuração final para software sem interferência mitigada [FAA2024 p.11].
+A10-03;PeraltaQuesada2023;Contexto;início;2;2;1;1;0;0;0;1;1.1;Aprovada;- A Khronos investiga, via grupo exploratório, o SYCL SC para sistemas críticos [PeraltaQuesada2023 p.2].
+A11-03;Loubach2019;Conceito;início;6;6;1;1;0;0;0;1;0.6;Aprovada;- Tendência de uso de DSA em vez de GP e áreas de pesquisa em arquiteturas abertas e computação reconfigurável em SoC (processador e FPGA) [Loubach2019 p.6].
+A1-05;Nimbekar2023;Resultado;meio;6;6;1;1;0;0;0;1;0.6;Aprovada;- Não há redução na acurácia ao comparar as redes em CPU, GPU e FPGA [Nimbekar2023 p.6].
+A2-06;Breyer2022;Resultado;meio;8;8;1;1;0;0;0;1;0.8;Aprovada;"- Bug do DPC++ impede inlining do atomic add; removendo-o, o tempo cai 38% (7,2 s para 4,5 s) [Breyer2022 p.8]"
+A3-04;Sifakis2015;Conceito;início;2;2;1;1;0;0;0;1;0.7;Aprovada;- Correção de sistema combina confiabilidade e otimização [Sifakis2015 p.2]
+A4-04;Lozano2023;Contexto;início;5;5;1;1;0;0;0;1;0.7;Aprovada;- Virtualização completa pode impor até 30% mais latência que a execução direta no hardware [Lozano2023 p.5].
+A5-10;Mzid2024;Conclusão;fim;39;39;1;1;0;0;0;1;0.9;Corrigir;- A análise determinística de escalonabilidade deve ser complementada por métodos formais e análise de segurança [Mzid2024 p.39].
+A7-09;Leppanen2023;Resultado;início;1 2 8;1;1;1;0;0;0;1;0.9;Corrigir;- Plataforma com dois dispositivos controlada por OpenCL para inferência de CNN de áudio do microfone à classificação [Leppanen2023 p.1]
+A8-04;Yoshida2024;Resultado;início;1 4;1;1;1;0;0;0;1;0.7;Aprovada;- Versões novas são preferíveis na maioria dos casos: CUDA8F é 1,16× mais lento que a versão mais recente na P100, e a diferença diminui a cada atualização [Yoshida2024 p.1]
+A9-04;FAA2024;Limitação;início;2;2;1;1;0;0;0;1;0.5;Aprovada;- Não cobre simultaneous multithreading devido ao conhecimento insuficiente da indústria e autoridades [FAA2024 p.2]
+A10-08;PeraltaQuesada2023;Resultado;meio;7;7;1;1;0;0;0;1;0.7;Corrigir;- Na Xavier, o SYCL é mais rápido que o OpenMP em convolução, LRN, softmax e transformada wavelet [PeraltaQuesada2023 p.7].
+A11-07;Loubach2019;Proposta;meio;14;14;1;1;0;0;0;1;0.6;Corrigir;- SoCs com elementos escalares e lógica programável como DSAs para aviônica via modelos de computação e reconfiguração em tempo de execução [Loubach2019 p.14]
+A1-09;Nimbekar2023;Resultado;fim;7;7;1;1;0;0;0;1;0.7;Aprovada;- Energia gasta pela LoCoMo-Net: 1440 J (GPU), 0,67 J (FPGA) e 0,0045 J (ASIC) [Nimbekar2023 p.7]
+A2-10;Breyer2022;Conclusão;fim;11 12;11;1;1;0;0;0;1;0.8;Aprovada;- Recomendam CUDA para GPUs NVIDIA, OpenMP para CPUs e SYCL para uso geral, apesar do desempenho do OpenCL [Breyer2022 p.11].
+A3-05;Sifakis2015;Argumento;início;3;3;1;1;0;0;0;1;8.2;Aprovada;- Confiabilidade e otimização são difíceis de conciliar [Sifakis2015 p.3].
+A4-10;Lozano2023;Conclusão;fim;17;17;1;1;0;0;0;1;0.9;Aprovada;- Recomendação do XtratuM, particionamento estático (Bao, Jailhouse) e a sugestão de evitar hipervisores sem manutenção (Quest-V, Rodosvisor, RTZVisor) [Lozano2023 p.17]
+A5-04;Mzid2024;Conceito;início;4;4;1;1;0;0;0;1;1.0;Corrigir;- Rate Monotonic é ótimo para tarefas periódicas/esporádicas, independentes, síncronas e com deadlines implícitos [Mzid2024 p.4].
+A7-08;Leppanen2023;Resultado;fim;8;8;1;1;0;0;0;1;0.9;Aprovada;- A sincronização no chip reduz o tempo médio por kernel de 313 μs para 67 μs, 246 μs a menos [Leppanen2023 p.8].
+A8-09;Yoshida2024;Resultado;meio;6;6;1;1;0;0;0;1;0.6;Corrigir;- Limitando os registradores (maxrregcount=40), o CUDA12M atinge 1,55 s, superando as versões antigas sem a opção [Yoshida2024 p.6].
+A9-05;FAA2024;Escopo;início;3;3;1;1;0;0;0;1;0.6;Aprovada;- Os objetivos não se aplicam a núcleos em lock-step ou ligados apenas por barramentos convencionais (incluindo coprocessadores/GPUs sob controle de outro núcleo) [FAA2024 p.3].
+A10-04;PeraltaQuesada2023;Contexto;início;2;2;1;1;0;0;0;1;1.0;Aprovada;- A GPU4S Bench (OBPMark Kernels) faz parte da OBPMark, a suíte oficial de benchmarks da ESA [PeraltaQuesada2023 p.2].
+A11-10;Loubach2019;Limitação;fim;19;19;1;1;0;0;0;1;0.6;Aprovada;- Desafios: portar software (C/C++, Ada) entre arquiteturas e garantir a reconfiguração segura e determinística em IMA [Loubach2019 p.19].
+A1-10;Nimbekar2023;Conclusão;fim;8;8;1;1;0;0;0;1;0.5;Aprovada;- O projeto usa menos de 20% dos recursos totais do FPGA [Nimbekar2023 p.8]
+A2-07;Breyer2022;Resultado;meio;8;8;1;1;0;0;0;1;0.8;Aprovada;- Desempenho inferior na AMD Radeon Pro VII comparado à NVIDIA P100 devido ao ajuste de blocos para NVIDIA, evidenciando a necessidade de ajuste fino para portabilidade de desempenho [Breyer2022 p.8].
+A3-06;Sifakis2015;Proposta;início;3;3;1;1;0;0;0;1;0.7;Aprovada;- Deslocar o foco dos métodos formais para o projeto rigoroso de sistemas, com ênfase em correção por construção [Sifakis2015 p.3].
+A4-05;Lozano2023;Contexto;início;6;6;1;1;0;0;0;1;1.3;Aprovada;- O ARINC 653 especifica particionamento temporal e espacial e sua interface APEX padroniza a ligação entre hipervisor/SO e aplicação [Lozano2023 p.6].
+A5-05;Mzid2024;Método;início;14;14;1;1;0;0;0;1;0.9;Aprovada;- O catálogo atual possui duas categorias de padrões: fator de utilização do processador e tempo de resposta [Mzid2024 p.14].
+A7-10;Leppanen2023;Conclusão;fim;10;10;1;1;0;0;0;1;0.8;Aprovada;- Suporte a pipes OpenCL para streaming no chip mais eficiente como trabalho futuro [Leppanen2023 p.10]
+A8-06;Yoshida2024;Resultado;início;1 4;1;1;1;0;0;0;1;1.0;Aprovada;- A potência quase não muda entre versões do CUDA: ±2% [Yoshida2024 p.1]
+A9-06;FAA2024;Conceito;início;3;3;1;1;0;0;0;1;0.8;Aprovada;- A disputa por recursos do MCP causa interferência temporal, aumentando o tempo de execução das aplicações [FAA2024 p.3].
+A10-09;PeraltaQuesada2023;Resultado;meio;7 8;7;1;1;0;0;0;1;0.6;Aprovada;- Na FFT, a versão SYCL USM é marginalmente mais rápida que a biblioteca da NVIDIA (cuFFT) [PeraltaQuesada2023 p.7].
+A11-04;Loubach2019;Contribuição;início;7;7;1;1;0;0;0;1;0.6;Corrigir;- O objetivo é discutir os próximos desafios de sistemas aviônicos futuros considerando aspectos de segurança crítica e a aplicação de modelos formais de computação com DSA [Loubach2019 p.7].
+A8-11;Yoshida2024;Conclusão;início;1;1;1;1;0;0;0;1;0.6;Aprovada;- Três fenômenos explicam a superioridade de versões antigas: desenrolamento de laço agressivo, escalonamento ineficiente de instruções e impacto do compilador host [Yoshida2024 p.1].
+A9-07;FAA2024;Conceito;início;5;5;1;1;0;0;0;1;0.6;Corrigir;- Particionamento robusto de tempo ocorre quando nenhuma partição consome mais que sua alocação de tempo, independentemente da execução em outros núcleos ativos [FAA2024 p.5].
+A10-05;PeraltaQuesada2023;Argumento;início;3;3;1;1;0;0;0;1;0.7;Corrigir;- O modelo Buffers é mais fácil para iniciantes porém mais lento, enquanto o USM, apesar de usar ponteiros e alocação dinâmica (desencorajados), oferece o melhor compromisso entre segurança, complexidade e desempenho [PeraltaQuesada2023 p.3].

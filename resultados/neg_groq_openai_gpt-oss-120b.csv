@@ -1,0 +1,13 @@
+﻿id;tipo;modo;acerto;recusou;corrigiu;inventou;recusa_sem_ler;falha_verificador;chamadas;segundos;pergunta;resposta
+N01;fora_do_corpus;recusar;1;1;0;0;1;0;1;1.1;O que os artigos dizem sobre o consumo de energia do ChatGPT?;- Não consta no material aberto.
+N02;fora_do_corpus;recusar;1;1;0;0;0;0;3;1.6;Quais resultados de MLPerf aparecem nos artigos?;- Não consta no material aberto.
+N03;fora_do_corpus;recusar;1;1;0;0;1;0;4;26.6;O que o AC 20-193 da FAA diz sobre o uso de redes neurais em aviônica?;- Não consta no material aberto.
+N04;premissa_falsa;corrigir;1;1;0;0;0;0;2;31.0;Por que Nimbekar usou a GPU NVIDIA A100 na comparação?;Não consta no material aberto.
+N05;premissa_falsa;corrigir;1;1;1;0;0;0;2;23.3;Por que o SYCL foi o mais rápido em todas as GPUs no estudo de Breyer?;"- A premissa não confere: o estudo de Breyer mostra que SYCL não foi o backend mais rápido em nenhuma GPU; CUDA foi o mais rápido nas GPUs NVIDIA, enquanto OpenCL liderou nas GPUs AMD e Intel [Breyer2022 p.11]."
+N06;premissa_falsa;corrigir;1;1;0;0;0;0;4;59.4;Por que Sifakis conclui que as GPUs resolvem a automação de projeto de sistemas?;Não consta no material aberto.
+N07;premissa_falsa;corrigir;1;1;1;0;0;0;2;33.8;Segundo o AC 20-193, por que o simultaneous multithreading é recomendado para software de nível A?;- A premissa não confere: o AC 20‑193 afirma que o suporte a simultaneous multithreading não é coberto, pois o conhecimento e a experiência da indústria e das autoridades de certificação são insuficientes para fornecer orientação de certificação, não sendo recomendado para software de nível A [FAA2024 p.2]
+N08;premissa_falsa;corrigir;1;1;1;0;0;0;2;12.6;Por que Peralta Quesada concluiu que o modelo SYCL Buffers é mais rápido que o USM?;- A premissa não confere: o artigo afirma que o modelo SYCL Buffers é mais lento que o USM, não mais rápido [PeraltaQuesada2023 p.6].
+N09;dado_inexistente;recusar;1;1;0;0;0;0;5;73.9;Qual a frequência de clock do processador no estudo de caso de Mzid?;Não consta no material aberto.
+N10;dado_inexistente;recusar;1;1;0;0;0;0;5;117.7;Qual foi o speedup numérico obtido pelos programas OpenMP de Young-S.?;- Não consta no material aberto.
+N11;dado_inexistente;recusar;1;1;0;0;0;0;5;86.1;Quanta energia, em joules, a Xavier gastou nos testes de Peralta Quesada?;Não consta no material aberto.
+N12;so_em_figura;recusar;1;1;0;0;0;0;5;31.1;Quais são as quatro normas de certificação de aeronaves citadas por Loubach?;- Não consta no material aberto.

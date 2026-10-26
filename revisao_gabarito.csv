@@ -1,0 +1,110 @@
+﻿id;status;comentario
+A1-01;Corrigir;p. 1, 2
+A1-02;Aprovada;
+A1-03;Aprovada;
+A1-04;Aprovada;
+A1-05;Aprovada;
+A1-06;Aprovada;
+A1-07;Aprovada;
+A1-08;Corrigir;p. 1, 2, 7, 8
+A1-09;Aprovada;
+A1-10;Aprovada;
+A10-01;Aprovada;
+A10-02;Aprovada;
+A10-03;Aprovada;
+A10-04;Aprovada;
+A10-05;Corrigir;"Segundo os autores, o modelo Buffers é mais fácil quando o desenvolvimento começa do zero, mas tende a ter desempenho menor, o que é consistente com os resultados; o USM usa ponteiros e alocação dinâmica, desencorajados em sistemas críticos, e ainda assim oferece um compromisso razoável entre diretrizes de segurança, complexidade e desempenho."
+A10-06;Aprovada;
+A10-07;Corrigir;"No servidor x86_64, as duas variantes SYCL ficam atrás do OpenMP na CPU; os autores suspeitam que isso se deve, em parte, à impossibilidade de definir o número de threads de CPU no SYCL."
+A10-08;Corrigir;"Na CPU da Xavier, a variante SYCL USM é mais rápida que o OpenMP em convolução, LRN, softmax e transformada wavelet, os blocos menos intensivos computacionalmente; a variante Buffer continua atrás do OpenMP."
+A10-09;Aprovada;
+A10-10;Aprovada;
+A10-11;Aprovada;
+A11-01;Corrigir;“trecho da pré-conferência cobre só a 2ª parte”. “tende a ser conservadora, com requisitos de segurança crítica (por exemplo, controle de voo)”,
+A11-02;Aprovada;
+A11-03;Aprovada;
+A11-04;Corrigir;O objetivo é discutir os próximos desafios dos sistemas aviônicos futuros considerando a segurança crítica e a possibilidade de aplicar modelos formais de computação junto com DSA.
+A11-05;Aprovada;
+A11-06;Corrigir;"CPU (escalar) atende algoritmos complexos com árvore de decisão diversa, mas tem escalabilidade de desempenho limitada; GPU (vetorial) é eficiente num conjunto reduzido de funções paralelizáveis, mas sofre latência e penalidades da hierarquia de memória; FPGA (lógica programável) é customizada para computar uma função específica, mas pode levar horas para compilar e sintetizar."
+A11-07;Corrigir;"SoCs que integram elementos escalares e de lógica programável num único encapsulamento são DSAs aplicáveis à aviônica desde que garantam a segurança do domínio; uma possível solução é combinar modelos de computação e reconfiguração em tempo de execução."
+A11-08;Aprovada;
+A11-09;Corrigir;Possíveis benefícios apontados: reuso de hardware com menor área de circuito, contribuição para minimizar SEU e controle do compromisso entre consumo de energia e desempenho.
+A11-10;Aprovada;
+A2-01;Aprovada;
+A2-02;Aprovada;
+A2-03;Aprovada;
+A2-04;Corrigir;"Por padrão, o OpenCL compila os kernels por JIT em tempo de execução, com overhead de cerca de cem milissegundos a mais de dois minutos, mesmo em invocações consecutivas; os autores mantiveram o JIT porque a compilação AOT com CMake não é trivial."
+A2-05;Aprovada;
+A2-06;Aprovada;
+A2-07;Aprovada;
+A2-08;Aprovada;
+A2-09;Aprovada;
+A2-10;Aprovada;
+A3-01;Aprovada;
+A3-02;Aprovada;
+A3-03;Aprovada;
+A3-04;Aprovada;
+A3-05;Aprovada;
+A3-06;Aprovada;
+A3-07;Aprovada;
+A3-08;Aprovada;
+A3-09;Aprovada;
+A3-10;Aprovada;
+A4-01;Aprovada;
+A4-02;Aprovada;
+A4-03;Aprovada;
+A4-04;Aprovada;
+A4-05;Aprovada;
+A4-06;Aprovada;
+A4-07;Aprovada;
+A4-08;Aprovada;
+A4-09;Aprovada;
+A4-10;Aprovada;
+A5-01;Aprovada;
+A5-02;Aprovada;
+A5-03;Aprovada;
+A5-04;Corrigir;Rate Monotonic é ótimo entre os esquemas de prioridade fixa para o escalonamento preemptivo de tarefas periódicas ou esporádicas, independentes, síncronas e com deadline igual ao período.
+A5-05;Aprovada;
+A5-06;Aprovada;
+A5-07;Aprovada;
+A5-08;Corrigir;p. 30–31 (sugestão do Claude, conferida por mim)
+A5-09;Aprovada;
+A5-10;Corrigir;Em sistemas críticos, a análise determinística de escalonabilidade precisa ser complementada por outras técnicas, como métodos formais e análise de segurança.
+A6-01;Aprovada;
+A6-02;Aprovada;
+A6-03;Aprovada;
+A6-04;Aprovada;
+A6-05;Aprovada;
+A6-06;Aprovada;
+A7-01;Corrigir;Propõe um método de código aberto e independente de fabricante para integrar aceleradores FPGA customizados a uma plataforma OpenCL comum, envolvendo-os numa interface de hardware comum.
+A7-02;Aprovada;
+A7-03;Aprovada;
+A7-04;Aprovada;
+A7-05;Aprovada;
+A7-06;Aprovada;
+A7-07;Aprovada;
+A7-08;Aprovada;
+A7-09;Corrigir;p. 1, 2, 8 (sugestão do Claude, conferida por mim)
+A7-10;Aprovada;
+A8-01;Aprovada;
+A8-02;Aprovada;
+A8-03;Aprovada;
+A8-04;Aprovada;
+A8-05;Aprovada;
+A8-06;Aprovada;
+A8-07;Aprovada;
+A8-08;Aprovada;
+A8-09;Corrigir;No FiniteDifferenceKernel na Tesla P100, limitando os registradores (maxrregcount=40), o CUDA12M obtém 1,55 s, menos que o CUDA8F e o CUDA8L sem a opção.
+A8-10;Aprovada;
+A8-11;Corrigir;p. 1, 9
+A9-01;Aprovada;
+A9-02;Corrigir;p. 1, 2
+A9-03;Aprovada;
+A9-04;Aprovada;
+A9-05;Aprovada;
+A9-06;Aprovada;
+A9-07;Corrigir;Há particionamento robusto de tempo quando, como resultado da mitigação da interferência temporal entre partições em núcleos diferentes, nenhuma partição consome mais que sua alocação de tempo de execução, estejam as partições dos outros núcleos ativos executando ou não.
+A9-08;Aprovada;
+A9-09;Aprovada;
+A9-10;Corrigir;"Se o requerente verificou que a plataforma oferece particionamento robusto de recursos e de tempo, pode verificar as aplicações e determinar o WCET separadamente; nas demais plataformas, os componentes cuja interferência não foi evitada nem mitigada deveriam ser testados no MCP alvo com todo o software executando na configuração final, incluindo testes de robustez das interfaces."
+A9-11;Aprovada;

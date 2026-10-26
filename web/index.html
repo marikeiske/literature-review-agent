@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mesa de revisão</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;1,7..72,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/estilo.css">
+</head>
+<body>
+  <header class="barra">
+    <div class="marca">
+      <h1>Mesa de revisão</h1>
+      <p id="sub-corpus">Corpus da dissertação</p>
+    </div>
+    <nav class="modos" role="tablist" aria-label="Modo da mesa">
+      <button type="button" role="tab" id="aba-perguntar" aria-selected="true" aria-controls="painel-perguntar">Perguntar</button>
+      <button type="button" role="tab" id="aba-revisar" aria-selected="false" aria-controls="painel-revisao">Revisar</button>
+    </nav>
+    <div class="controles" id="controles-pergunta">
+      <label class="seletor">
+        <span class="visualmente-oculto">Modelo</span>
+        <select id="modelo" aria-label="Modelo usado pelo agente"></select>
+      </label>
+      <button id="nova" class="botao-texto" type="button">Nova conversa</button>
+    </div>
+  </header>
+
+  <main class="mesa">
+    <section class="folha" id="painel-perguntar" role="tabpanel" aria-labelledby="aba-perguntar">
+      <div id="conversa" class="conversa" aria-live="polite">
+        <div id="vazio" class="vazio">
+          <h2>Pergunte aos seus artigos</h2>
+          <p>O agente procura nos artigos do corpus e responde com uma afirmação por linha, cada uma
+            com a página do PDF. Na margem, o verificador marca o que conferiu. Clique numa página
+            para abri-la ao lado e decida se a resposta entra nos seus fichamentos.</p>
+          <div class="exemplos" id="exemplos"></div>
+          <h3>Na estante</h3>
+          <ul class="estante" id="estante"></ul>
+        </div>
+      </div>
+
+      <form id="form" class="caixa" autocomplete="off">
+        <label for="pergunta" class="visualmente-oculto">Pergunta</label>
+        <textarea id="pergunta" rows="1" placeholder="Pergunte sobre os artigos (pode ser em português)"></textarea>
+        <button id="enviar" class="botao-principal" type="submit">Perguntar</button>
+      </form>
+    </section>
+
+    <section class="folha revisao" id="painel-revisao" role="tabpanel" aria-labelledby="aba-revisar" hidden>
+      <div class="rev-topo">
+        <label>Conjunto
+          <select id="rev-conjunto" aria-label="O que revisar"></select>
+        </label>
+        <label>Mostrar
+          <select id="rev-filtro" aria-label="Filtrar por decisão"></select>
+        </label>
+        <label>Artigo
+          <select id="rev-artigo" aria-label="Filtrar por artigo"></select>
+        </label>
+        <div class="rev-progresso" id="rev-progresso" aria-live="polite"></div>
+      </div>
+      <div class="rev-cartao" id="rev-cartao"></div>
+    </section>
+
+    <aside class="fonte" id="fonte" aria-label="Página citada">
+      <div class="fonte-vazia" id="fonte-vazia">
+        <p>As páginas citadas abrem aqui, com os números da afirmação grifados.</p>
+      </div>
+      <div class="fonte-cheia" id="fonte-cheia" hidden>
+        <div class="fonte-topo">
+          <div>
+            <p class="fonte-artigo" id="fonte-artigo"></p>
+            <p class="fonte-titulo" id="fonte-titulo"></p>
+          </div>
+          <button class="fechar" id="fechar-fonte" type="button" aria-label="Fechar página">×</button>
+        </div>
+        <div class="fonte-nav">
+          <button type="button" id="pag-ant" aria-label="Página anterior">‹</button>
+          <span id="pag-rotulo" aria-live="polite"></span>
+          <button type="button" id="pag-prox" aria-label="Próxima página">›</button>
+          <div class="alternar" role="tablist" aria-label="Formato da página">
+            <button type="button" role="tab" id="ver-texto" aria-selected="true">Texto</button>
+            <button type="button" role="tab" id="ver-pdf" aria-selected="false">PDF</button>
+          </div>
+        </div>
+        <div class="fonte-corpo">
+          <article id="fonte-texto" class="fonte-texto"></article>
+          <iframe id="fonte-pdf" class="fonte-pdf" title="PDF do artigo" hidden></iframe>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <div id="aviso" class="aviso" role="status" hidden></div>
+  <script src="/app.js"></script>
+</body>
+</html>
