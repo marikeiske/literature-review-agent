@@ -24,9 +24,9 @@ for variante, pergunta in PERGUNTAS.items():
     tokens = []
     original = agente._chamar_llm
 
-    def contando(*a, **k):
-        m = original(*a, **k)
-        tokens.append(agente.tokens_contexto)
+    def contando(*a, _original=original, _tokens=tokens, **k):
+        m = _original(*a, **k)
+        _tokens.append(agente.tokens_contexto)
         return m
 
     agente._chamar_llm = contando

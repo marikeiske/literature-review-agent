@@ -32,7 +32,10 @@ Saída: resultados/aval_<modelo>_<condicao>.csv e um resumo no terminal.
 import argparse
 import contextlib
 import csv
+import hashlib
+import json
 import os
+import subprocess
 import re
 import sys
 import time
@@ -43,7 +46,7 @@ from openai import APIStatusError, RateLimitError
 
 import revisao
 from agente import verificador
-from agente.config import RAIZ
+from agente.config import MAX_CICLOS, MAX_TOOLS, RAIZ, TOP_K
 from agente.harness import Agente
 
 
@@ -77,6 +80,36 @@ def carregar_gabarito(artigos=None):
         itens.append({"id": g["id"], "artigo": g["artigo"], "tipo": g["tipo"], "posicao": g["posicao"],
                       "texto": g["texto"], "paginas": paginas, "status": status or "sem revisão"})
     return itens
+
+
+def _sha256(dados: bytes) -> str:
+    return hashlib.sha256(dados).hexdigest()[:16]
+
+
+def registrar_execucao(agente: Agente, tipo: str, condicao: str, arquivo: Path):
+    """Uma linha em resultados/execucoes.jsonl por rodada: com que código, prompt e gabarito ela rodou.
+
+    Prova, rodada a rodada, que o system prompt não mudou (hash igual) e de qual commit veio o
+    resultado. O provedor pode trocar o modelo por trás do mesmo nome: a data fica registrada."""
+    def git(*args):
+        try:
+            return subprocess.run(["git", *args], cwd=RAIZ, capture_output=True, text=True, timeout=10).stdout.strip()
+        except (OSError, subprocess.SubprocessError):
+            return ""
+    from agente.harness import montar_system_prompt
+    import openai
+    gab = revisao.ARQ_REV_GABARITO
+    linha = {
+        "quando": time.strftime("%Y-%m-%dT%H:%M:%S"), "tipo": tipo, "condicao": condicao,
+        "modelo": agente.rotulo, "arquivo": arquivo.name,
+        "commit": git("rev-parse", "--short", "HEAD"), "codigo_alterado": bool(git("status", "--porcelain", "--", "agente", "avaliar.py")),
+        "sha_system_prompt": _sha256(montar_system_prompt().encode("utf-8")),
+        "sha_revisao_gabarito": _sha256(gab.read_bytes()) if gab.exists() else "",
+        "python": sys.version.split()[0], "openai": openai.__version__,
+        "temperatura": 0, "max_ciclos": MAX_CICLOS, "max_tools": MAX_TOOLS, "top_k": TOP_K,
+    }
+    with open(RAIZ / "resultados" / "execucoes.jsonl", "a", encoding="utf-8") as f:
+        f.write(json.dumps(linha, ensure_ascii=False) + "\n")
 
 
 @contextlib.contextmanager
@@ -300,6 +333,7 @@ def main():
     if args.negativas:
         nome = re.sub(r"[^a-zA-Z0-9.-]+", "_", agente.rotulo)
         with execucao_exclusiva(RAIZ / "resultados" / f"neg_{nome}.csv"):
+            registrar_execucao(agente, "negativas", "rag", RAIZ / "resultados" / f"neg_{nome}.csv")
             return avaliar_negativas(agente, nome, args.limite)
     itens = carregar_gabarito(args.artigos)
     # Ordem intercalada: um item de cada documento por vez, alternando início, meio e fim.
@@ -326,6 +360,8 @@ def main():
     pasta.mkdir(exist_ok=True)
     arquivo = pasta / f"aval_{nome}_{args.condicao}.csv"
     with execucao_exclusiva(arquivo):
+        if not args.so_resumo:
+            registrar_execucao(agente, "afirmacoes", args.condicao, arquivo)
         avaliar_afirmacoes(agente, args, itens, arquivo)
 
 

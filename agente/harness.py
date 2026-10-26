@@ -105,7 +105,9 @@ class Agente:
         chave = os.getenv(cfg["api_key_env"]) if cfg["api_key_env"] else "ollama"
         if not chave:
             raise ValueError(f"Falta a chave {cfg['api_key_env']} no arquivo .env")
-        return OpenAI(base_url=cfg["base_url"], api_key=chave)
+        # Tempo limite por chamada (26/10): sem ele, um provedor travado prendia a interface por até
+        # 10 min (padrão do cliente). Não muda prompt nem parâmetros de geração.
+        return OpenAI(base_url=cfg["base_url"], api_key=chave, timeout=120, max_retries=2)
 
     def _contexto_inicial(self) -> list:
         return [{"role": "system", "content": montar_system_prompt()}]

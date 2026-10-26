@@ -1,0 +1,29 @@
+# Roda a cada envio: testes, lint e auditoria de dependências.
+# Não precisa do corpus nem de chaves: os testes usam páginas de exemplo.
+name: testes
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Dependências
+        run: pip install -r requirements-dev.txt
+      - name: Lint (ruff)
+        run: ruff check .
+      - name: Testes (pytest)
+        run: pytest -q
+      - name: Auditoria de dependências (pip-audit)
+        run: pip-audit -r requirements.txt

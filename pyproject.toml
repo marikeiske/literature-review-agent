@@ -1,0 +1,12 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 130
+target-version = "py311"
+extend-exclude = ["web/vendor", "artigo"]
+
+[tool.ruff.lint]
+# Erros reais (nomes indefinidos, imports não usados, sintaxe) e armadilhas comuns (bugbear)
+select = ["F", "E9", "B"]
+ignore = ["B008", "B905"]

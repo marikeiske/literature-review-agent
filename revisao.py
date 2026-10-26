@@ -34,7 +34,13 @@ ARQ_REV_GABARITO = RAIZ / "revisao_gabarito.csv"
 ARQ_PRE_CONFERENCIA = RAIZ / "pre_conferencia_gabarito.json"  # rascunho do Claude, não é revisão
 PASTA_RESULTADOS = RAIZ / "resultados"
 OPCOES = {"gabarito": ["Aprovada", "Corrigir", "Rejeitar"],
-          "negativas": ["Confere", "Parcial", "Não confere"]}
+          "negativas": ["Confere", "Parcial", "Não confere"],
+          "sentido": ["Confere", "Parcial", "Não confere"]}
+# Revisão de sentido: a avaliação automática só confere o NÚMERO da página. Aqui a autora julga, numa
+# amostra fixa, se a página citada sustenta mesmo a afirmação (inclusive quando a página difere do gabarito).
+SENTIDO_RODADA = "aval_ollama_nemotron-3-ultra_cloud_rag"  # melhor modelo na avaliação de 26/10
+SENTIDO_AMOSTRA = 30
+SENTIDO_SEMENTE = 2026
 CAMPOS = ["id", "status", "comentario", "quando"]
 _trava = threading.Lock()
 
@@ -140,6 +146,11 @@ def _rotulo_negativas(stem: str) -> str:
 def arquivo_revisao(conjunto: str) -> Path:
     if conjunto == "gabarito":
         return ARQ_REV_GABARITO
+    if conjunto.startswith("sentido:"):
+        stem = conjunto.removeprefix("sentido:")
+        if stem != SENTIDO_RODADA or not (PASTA_RESULTADOS / f"{stem}.csv").exists():
+            raise ValueError("Conjunto desconhecido.")
+        return PASTA_RESULTADOS / f"revisao_sentido_{stem}.csv"
     stem = conjunto.removeprefix("neg:")
     if not re.fullmatch(r"neg_[\w.-]+", stem) or not (PASTA_RESULTADOS / f"{stem}.csv").exists():
         raise ValueError("Conjunto desconhecido.")
@@ -155,6 +166,11 @@ def conjuntos() -> list[dict]:
     ids = {g["id"] for g in gab}
     saida = [{"id": "gabarito", "rotulo": f"Gabarito · {len(gab)} afirmações", "total": len(gab),
               "revisadas": _contar(ler_revisoes(ARQ_REV_GABARITO), ids)}]
+    if (PASTA_RESULTADOS / f"{SENTIDO_RODADA}.csv").exists():
+        cid = f"sentido:{SENTIDO_RODADA}"
+        itens = itens_sentido()
+        saida.append({"id": cid, "rotulo": f"Sentido · {NOMES_MODELOS.get('nemotron-3-ultra_cloud')} · amostra de {len(itens)}",
+                      "total": len(itens), "revisadas": _contar(ler_revisoes(arquivo_revisao(cid)), {i["id"] for i in itens})})
     for arq in _arquivos_negativas():
         itens = itens_negativas(arq)
         saida.append({"id": f"neg:{arq.stem}", "rotulo": _rotulo_negativas(arq.stem), "total": len(itens),
@@ -180,6 +196,23 @@ def itens_negativas(arq: Path) -> list[dict]:
     return itens
 
 
+def itens_sentido() -> list[dict]:
+    """Amostra fixa (semente 2026) de respostas do melhor modelo, com a afirmação do gabarito."""
+    import random
+    gab = {g["id"]: g for g in ler_gabarito()}
+    linhas = {}
+    with open(PASTA_RESULTADOS / f"{SENTIDO_RODADA}.csv", encoding="utf-8-sig") as f:
+        for l in csv.DictReader(f, delimiter=";"):
+            if l["id"] in gab:
+                linhas.setdefault(l["id"], l)
+    ids = sorted(linhas)
+    amostra = sorted(random.Random(SENTIDO_SEMENTE).sample(ids, min(SENTIDO_AMOSTRA, len(ids))),
+                     key=lambda i: (int(i[1:].split("-")[0]), i))
+    return [{"id": i, "artigo": gab[i]["artigo"], "tipo": gab[i]["tipo"], "posicao": gab[i]["posicao"],
+             "texto": gab[i]["texto"], "resposta": linhas[i]["resposta"],
+             "paginas_citadas": linhas[i]["paginas_citadas"]} for i in amostra]
+
+
 def carregar(conjunto: str) -> dict:
     arq = arquivo_revisao(conjunto)
     if conjunto == "gabarito":
@@ -190,6 +223,8 @@ def carregar(conjunto: str) -> dict:
             pre = json.loads(ARQ_PRE_CONFERENCIA.read_text(encoding="utf-8")).get("itens", {})
             for it in itens:
                 it["claude"] = pre.get(it["id"])
+    elif conjunto.startswith("sentido:"):
+        itens, tipo = itens_sentido(), "sentido"
     else:
         itens, tipo = itens_negativas(PASTA_RESULTADOS / f"{conjunto.removeprefix('neg:')}.csv"), "negativas"
     return {"conjunto": conjunto, "tipo": tipo, "opcoes": OPCOES[tipo], "itens": itens,

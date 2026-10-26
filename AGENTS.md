@@ -34,6 +34,12 @@ que grounding, evals, harness e HITL mitigam (Semana 2, p. 52).
 - A pré-conferência do Claude só sugere. O artigo declara que ela existiu e reporta quantas
   sugestões a autora aceitou ou mudou; ela nunca substitui a decisão humana.
 
+## Antes de terminar qualquer mudança
+
+- `pytest` e `ruff check .` passando (o CI roda os dois e o `pip-audit` a cada envio).
+- Bug corrigido ganha um teste que falharia sem a correção.
+- Número citado no artigo sai de `python resumo_avaliacao.py`, nunca digitado à mão.
+
 ## Como rodar
 
 ```
@@ -61,6 +67,10 @@ python main.py       (terminal)
 | `web/vendor/` | PDF.js 4.10.38 (Apache-2.0), empacotado para grifar a página do PDF sem depender de CDN |
 | `avaliar.py` | Avaliação contra o gabarito (taxa de acerto das citações) e perguntas negativas (`--negativas`) |
 | `negativas.py` | 12 perguntas cuja resposta certa é recusar ou corrigir a premissa, com a resposta esperada |
+| `seguranca.py` | Regras de segurança do servidor local (Host, Origin, JSON, ids), testáveis sem o corpus |
+| `tests/`, `pyproject.toml`, `.github/workflows/testes.yml` | Testes (pytest), lint (ruff) e CI com pip-audit; rodam sem corpus e sem chaves |
+| `corpus_fontes.py`, `corpus/FONTES.md` | Origem (DOI) e SHA-256 de cada PDF do corpus; `--conferir` checa uma cópia baixada |
+| `resultados/execucoes.jsonl` | Uma linha por rodada de avaliação: commit, hash do system prompt e do gabarito, versões |
 | `revisao.py` | Revisão humana da avaliação (aba Revisar da interface): grava `revisao_gabarito.csv` e `resultados/revisao_neg_*.csv` |
 | `pre_conferencia_gabarito.json` | Pré-conferência do gabarito feita pelo Claude (sugestão e trecho literal); rascunho, não é revisão |
 | `resumo_avaliacao.py` | Recalcula todos os números da avaliação a partir dos CSVs e grava `resultados/resumo_numeros.md` (fonte dos números do artigo) |
@@ -98,6 +108,10 @@ python main.py       (terminal)
 | 26/10 | n8n publicado em `0.0.0.0:5678`, visível na rede | Recriado em `127.0.0.1`, versão fixa 2.43.7 (o antigo ficou parado, renomeado) | Docker, README |
 | 26/10 | Id do histórico aceitava `../` no nome do arquivo | Id conferido com expressão regular estrita | `app.py` (`item_historico`) |
 | 26/10 | Versões soltas (`>=`, `:latest`) | `requirements.txt` com `==`; `pip-audit` sem vulnerabilidades; imagens com versão | `requirements.txt`, `scripts/preparar_ollama.ps1` |
+| 26/10 | Comparações de acurácia sem teste estatístico: "o contexto longo ganhou em 2 de 3" não se sustentava (p = 0,39 e 0,73) | Resumo com IC 95% de Wilson e McNemar exato pareado | `resumo_avaliacao.py` |
+| 26/10 | Nada provava que o system prompt estava congelado entre rodadas | Cada rodada grava commit e hash do prompt e do gabarito | `avaliar.py` (`registrar_execucao`) |
+| 26/10 | Avaliação só mede o número da página, não o sentido | Revisão de sentido numa amostra fixa de 30 respostas | `revisao.py` (`itens_sentido`), aba Revisar |
+| 26/10 | Provedor travado prendia a interface por até 10 min | Tempo limite de 120 s por chamada | `agente/harness.py` |
 
 ## Quando uma falha se repetir
 

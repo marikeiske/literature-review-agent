@@ -25,6 +25,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 import revisao
+import seguranca
 from agente import hitl, verificador
 from agente.config import PASTA_CORPUS, PASTA_LOGS, PROVEDORES, RAIZ
 from agente.corpus import ARTIGOS_POR_ID
@@ -35,11 +36,7 @@ PASTA_VENDOR = PASTA_WEB / "vendor"  # PDF.js empacotado (Apache-2.0), para não
 PORTA = 8765
 porta_ativa = PORTA  # a porta em que o servidor abriu de fato (main)
 
-# Segurança do servidor local (análise de 26/10): o servidor escuta só em 127.0.0.1, mas o
-# navegador deixa qualquer site mandar pedidos para lá. Por isso:
-#  - Host precisa ser 127.0.0.1/localhost na porta certa (bloqueia DNS rebinding);
-#  - POST precisa vir da própria página (Origin/Sec-Fetch-Site) e com corpo JSON
-#    (um site de fora não consegue mandar JSON sem pré-verificação CORS, que este servidor nega).
+# Segurança do servidor local: regras em seguranca.py (testadas em tests/test_seguranca.py).
 CSP = ("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
        "font-src https://fonts.gstatic.com; img-src 'self' data: blob:; frame-src 'self'; worker-src 'self' blob:; "
        "connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'")
@@ -159,9 +156,9 @@ def historico() -> list[dict]:
 
 
 def item_historico(id_: str) -> dict:
-    stem, _, n = id_.partition("#")
-    if not re.fullmatch(r"sessao_[\d_-]+", stem) or not n.isdigit():  # nada de "../" no id
+    if not seguranca.id_historico_valido(id_):  # nada de "../" no id
         raise ValueError("Conversa não encontrada.")
+    stem, _, n = id_.partition("#")
     arquivo = PASTA_LOGS / f"{stem}.jsonl"
     if not arquivo.is_file():
         raise ValueError("Conversa não encontrada.")
@@ -252,18 +249,7 @@ class Manipulador(BaseHTTPRequestHandler):
             self.send_header("Content-Security-Policy", CSP)
 
     def _pedido_confiavel(self, post: bool) -> bool:
-        """Só a própria página, aberta em 127.0.0.1/localhost, fala com o servidor."""
-        hosts = {f"127.0.0.1:{porta_ativa}", f"localhost:{porta_ativa}"}
-        if self.headers.get("Host", "") not in hosts:
-            return False
-        if not post:
-            return True
-        origem = self.headers.get("Origin")
-        if origem is not None and origem not in {f"http://{h}" for h in hosts}:
-            return False
-        if self.headers.get("Sec-Fetch-Site", "same-origin") not in ("same-origin", "none"):
-            return False
-        return self.headers.get("Content-Type", "").split(";")[0].strip() == "application/json"
+        return seguranca.pedido_confiavel(self.headers, porta_ativa, post)
 
     def _arquivo(self, caminho, tipo=None):
         if not caminho.is_file():
@@ -293,7 +279,7 @@ class Manipulador(BaseHTTPRequestHandler):
             return self._arquivo(PASTA_WEB / "index.html", "text/html; charset=utf-8")
         if url.path.startswith("/vendor/"):
             nome = url.path[len("/vendor/"):]
-            if not re.fullmatch(r"[\w.-]+", nome):  # só arquivos da pasta, sem subpastas
+            if not seguranca.nome_vendor_valido(nome):
                 return self._json({"erro": "não encontrado"}, 404)
             tipo = "text/javascript; charset=utf-8" if nome.endswith(".mjs") else None
             return self._arquivo(PASTA_VENDOR / nome, tipo)
@@ -398,7 +384,7 @@ class Manipulador(BaseHTTPRequestHandler):
 
 def main():
     porta = PORTA
-    for tentativa in range(10):
+    for _ in range(10):
         try:
             servidor = ThreadingHTTPServer(("127.0.0.1", porta), Manipulador)
             break

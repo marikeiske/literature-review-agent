@@ -1,148 +1,103 @@
-# Agente de revisão de literatura com rastreio de fonte
+# Literature-review agent with source tracing
 
-Projeto Final da TE-251 (2026.2). Domínio: revisão de literatura em computação heterogênea para
-aviônica crítica (modelos de programação, aceleradores, hypervisors e particionamento, verificação
-de tempo real). Em aeroespacial, toda afirmação precisa deixar rastro até a fonte.
+*[Versão em português](README.pt-BR.md)*
 
-Você pergunta sobre os artigos do corpus; o agente busca nos PDFs, responde com uma afirmação por
-linha e a página de cada uma, e só grava o fichamento depois que você aprova.
+An LLM agent that answers questions about a closed corpus of scientific papers and **cites the PDF
+page behind every claim**. A deterministic verifier checks each citation, and nothing is saved
+until a human approves it. Domain: heterogeneous computing for safety-critical avionics, where
+every engineering claim must be traceable to its source.
 
-## Abrir a interface
+Final project of TE-251 (ITA, 2026.2). The accompanying paper (IEEE format, in Portuguese) reports
+the evaluation below.
 
-Dê dois cliques em **`abrir_agente.bat`**. O navegador abre a mesa de revisão em
-`http://127.0.0.1:8765`. Para encerrar, feche a janela preta que abriu junto.
+## How it works
 
-Na mesa: escreva a pergunta embaixo, acompanhe a trilha do que o agente fez, clique numa aba
-amarela de página para abrir a página ao lado (com os números grifados) e decida:
-**Aprovar e salvar** grava em `fichamentos/`, **Pedir correção** devolve ao agente,
-**Rejeitar** só registra no log. Na margem: ✓ página lida e números conferem, ? número que
-não está na página, ✗ página não lida ou recusa sem ler nada, ! frase sem página.
+1. **Agentic RAG.** The model gets read-only tools (`buscar_trechos`, BM25 search over page
+   snippets; `ler_pagina`; `listar_artigos`; `carregar_skill`) and decides what to read. A budget of
+   4 tool calls per question stops search loops (`agente/harness.py`).
+2. **One claim per line, with `[DocId p.N]`.** The system prompt requires a citation on every
+   line, an explicit refusal ("Não consta no material aberto.") when the data is missing, and a
+   correction ("A premissa não confere: …", with a citation) when the question's premise is false.
+3. **Deterministic verifier** (`agente/verificador.py`, no LLM). Each line is marked as
+   *traceable* (the cited page was read in this turn and its numbers appear on it), *number
+   missing*, *page not read* (a fabricated citation), *refusal without reading*, or *no citation*.
+   It is necessary, not sufficient: it does not check meaning.
+4. **Human in the loop.** The web UI opens the cited PDF page next to the answer, with the numbers
+   highlighted. The reviewer approves, asks for a correction or rejects; only approval writes a note
+   to `fichamentos/` (`agente/hitl.py`).
 
-## Rodar no terminal do VS Code (Windows)
+## Results (109 gold claims, 11 documents)
 
-1. Abra esta pasta no VS Code (Arquivo → Abrir Pasta).
-2. Abra o terminal do VS Code (Ctrl + ') e rode:
+Exact cited page vs. the human-reviewed gold set, agentic RAG, temperature 0
+(`resultados/resumo_numeros.md`, 26 Oct 2026):
 
-```
-.venv\Scripts\activate
-python main.py
-```
+| Model (provider) | Exact page | 95% CI (Wilson) | Cited an unread page |
+|---|---|---|---|
+| Nemotron 3 Ultra (Ollama Cloud) | 106/109 (97%) | 92–99% | 0 |
+| GPT-OSS 120B (Groq) | 104/109 (95%) | 90–98% | 0 |
+| GPT-OSS 120B (Ollama Cloud) | 104/109 (95%) | 90–98% | 0 |
+| Gemma 4 31B (Ollama Cloud) | 103/109 (94%) | 89–97% | 0 |
+| Gemini Flash-Lite (Google) | 99/109 (91%) | 84–95% | 0 |
 
-O ambiente virtual (`.venv`), as dependências e o índice das páginas (`dados/paginas.json`)
-já estão prontos. Se precisar refazer do zero:
+- **No model cited a page it had not read** (the verifier would flag it).
+- **Negative questions** (out of corpus, false premise, missing data, data only in a figure):
+  12/12 for every model above; a human reviewer checked every answer.
+- **RAG vs. whole paper in the prompt:** no significant difference for Gemma or Gemini
+  (McNemar p = 0.73 and 0.39). For GPT-OSS, RAG was better (95% vs. 87%, p = 0.035): with the
+  whole paper, it found the right passage but cited the neighbouring page. Long context also costs
+  about 3× more input tokens.
+- **Model ranking:** the confidence intervals overlap; with 109 items, none of the differences
+  between models is significant (best vs. worst p = 0.065).
+
+Limitations and risks (data sent to third-party providers, indirect prompt injection, a single gold
+set annotator) are discussed in the paper's AI Assurance section and in
+[README.pt-BR.md](README.pt-BR.md#segurança-e-privacidade).
+
+## Quick start (Windows)
 
 ```
 py -3.11 -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-python -m agente.corpus
+copy .env.example .env          (add at least one free API key)
+python -m agente.corpus         (indexes the PDFs in corpus/, see corpus/FONTES.md)
+python app.py                   (web UI at http://127.0.0.1:8765)
 ```
 
-## Modelos (todos sem custo)
+Or double-click `abrir_agente.bat`. Free providers only: Groq, Google AI Studio, OpenRouter
+`:free` models and Ollama Cloud (free plan).
 
-| Provedor | Modelo padrão | Limite gratuito (out/2026) |
-|---|---|---|
-| Groq (padrão) | `openai/gpt-oss-120b` | 200 mil tokens/dia e 8 mil tokens/minuto por modelo |
-| Gemini | `gemini-flash-lite-latest` | plano gratuito do AI Studio; limites por modelo, ver no AI Studio |
-| OpenRouter | `nvidia/nemotron-3-ultra-550b-a55b:free` | 50 requisições/dia sem comprar créditos (o Super saiu do ar em 20/10) |
-| Ollama Cloud | `gemma4:31b-cloud`, `gpt-oss:120b-cloud`, `nemotron-3-ultra:cloud` (o `minimax-m3.1-flash:cloud` saiu do plano gratuito em 23/10) | plano gratuito com limite por sessão (5 h) e por semana; precisa do Docker aberto e da conta conectada (`docker exec -it ollama-novo ollama signin`) |
-| Ollama (local) | `bonsai-2:4b` | fora da interface desde 26/10: lê o prompt a ~3,7 tokens/s na CPU (21/10), inviável; continua acessível pelo terminal (`/model ollama`) |
-
-Dentro do agente, troque com `/model groq`, `/model gemini`, `/model openrouter` ou `/model ollama:qwen2.5:1.5b`.
-Para ver os modelos gratuitos do momento: `python listar_modelos.py`.
-
-## Avaliação (resultado principal do artigo)
+## Evaluation
 
 ```
-python avaliar.py groq --por-artigo 3           piloto: 33 afirmações (3 por documento: início, meio e fim)
-python avaliar.py groq                          as 109 afirmações do gabarito
-python avaliar.py groq --condicao contexto      sem RAG: artigo inteiro no prompt
-python avaliar.py groq --negativas              12 perguntas em que o certo é recusar ou corrigir
-python revisar_negativas.py                     exporta a sua revisão das negativas para planilha
+python avaliar.py groq                       109 gold claims (resumes where it stopped)
+python avaliar.py groq --condicao contexto   no RAG: whole paper in the prompt
+python avaliar.py groq --negativas           12 questions whose right answer is to refuse or correct
+python resumo_avaliacao.py                   all numbers, CIs and McNemar tests from the CSVs
 ```
 
-## Revisão humana (aba Revisar)
+Since 26 Oct 2026, every run logs the git commit, system-prompt hash and gold-set hash to `resultados/execucoes.jsonl`.
+The PDFs are not in the repository (copyright; one is not for redistribution): `corpus/FONTES.md`
+lists each source and its SHA-256, and `python corpus_fontes.py --conferir` checks your copies.
 
-Na interface, a aba **Revisar** mostra um item por vez, com a página da fonte aberta ao lado.
+## Development
 
-- **Gabarito:** a página sustenta a afirmação? Aprovada, Corrigir ou Rejeitar. Em Corrigir,
-  escreva a página certa (por exemplo, `p. 2`): a avaliação passa a usar essa página.
-  Rejeitar tira a afirmação da avaliação. Grava em `revisao_gabarito.csv`.
-- **Negativas:** a resposta do agente confere com a esperada? Confere, Parcial ou Não confere,
-  com observação. Grava em `resultados/revisao_<rodada>.csv`.
+```
+pip install -r requirements-dev.txt
+pytest            verifier, page parsing, local-server security, statistics
+ruff check .
+```
 
+GitHub Actions runs tests, lint and `pip-audit` on every push. Project rules for coding agents are in
+`AGENTS.md`.
 
-Teclas 1, 2 e 3 decidem; as setas navegam. Cada decisão fica com data e hora. Para anexar ao
-artigo, `python revisar_negativas.py` exporta a revisão das negativas para planilha.
+## Security
 
-Se a cota do dia acabar, rode o mesmo comando no dia seguinte: ele continua de onde parou.
-Os resultados ficam em `resultados/`. Só entram afirmações do gabarito que não estão como
-"Rejeitar"; revise a coluna Status da planilha antes da rodada final.
+The local server only listens on `127.0.0.1` and rejects requests from other origins (Host, Origin and
+JSON content type are checked), which blocks cross-site requests and DNS rebinding. Agent tools are
+read-only. See `seguranca.py` and `tests/test_seguranca.py`.
 
-Outros testes: `python teste_rapido.py groq "pergunta"` e `python -m experimentos.idioma groq`.
+## License
 
-## Comandos
-
-`/model`, `/context`, `/chamadas`, `/log`, `/clear`, `/sair` (os mesmos da demo da disciplina,
-mais `/chamadas`, que conta as requisições).
-
-## Onde fica cada coisa
-
-- `logs/` — um arquivo por sessão com cada chamada, tool, verificação e decisão sua.
-- `fichamentos/` — os fichamentos que você aprovou.
-- `AGENTS.md` — regras do projeto e mapa dos arquivos.
-- `skills/fichamento/SKILL.md` — instruções carregadas quando você pede o fichamento de um artigo.
-
-## Segurança e privacidade
-
-Análise feita em 26/10/2026. O que foi corrigido e o que continua como risco declarado.
-
-**Servidor local (`app.py`)**
-- Escuta só em `127.0.0.1`. Recusa pedidos com `Host` diferente de `127.0.0.1`/`localhost` na
-  porta certa, o que bloqueia *DNS rebinding*.
-- Alterações (POST) só valem quando vêm da própria página: o servidor confere `Origin` e
-  `Sec-Fetch-Site` e exige corpo JSON. Sem isso, qualquer site aberto no navegador poderia mudar
-  a revisão humana (`revisao_gabarito.csv`) ou gastar a cota dos provedores.
-- Cabeçalhos: `Content-Security-Policy`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`.
-- O texto dos PDFs e as respostas dos modelos passam por escape antes de virar HTML.
-  `/pdf/` só serve PDFs do corpus, e `/vendor/` só serve arquivos da pasta `web/vendor`.
-
-**Docker**
-- n8n (`n8nio/n8n:2.43.7`) e Ollama (`ollama/ollama:0.40.6`) publicam porta só em `127.0.0.1`.
-  O n8n estava em `0.0.0.0:5678`, acessível por qualquer pessoa na mesma rede.
-  Para recriar o n8n do mesmo jeito:
-  ```
-  docker run -d --name n8n --restart unless-stopped -p 127.0.0.1:5678:5678 -e GENERIC_TIMEZONE=America/Sao_Paulo -e TZ=America/Sao_Paulo -e N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true -v n8n_te251:/home/node/.n8n n8nio/n8n:2.43.7
-  docker network connect te251 n8n
-  ```
-
-**Dependências**
-- Versões fixas em `requirements.txt`. `python -m pip_audit` em 26/10: nenhuma vulnerabilidade
-  conhecida (pip e setuptools do `.venv` foram atualizados).
-
-**Riscos que continuam (declarados no artigo, seção de AI Assurance)**
-- *Prompt injection* indireta: o texto dos PDFs entra no prompt. Um PDF com instruções escondidas
-  pode induzir uma resposta falsa. Barreiras: tools só de leitura, verificador (página lida e
-  números), e nada vira fichamento sem aprovação humana.
-- Dados que saem da máquina: trechos do corpus vão para o provedor escolhido.
-  - Gemini, plano gratuito: o Google usa o conteúdo enviado para melhorar produtos, revisores
-    humanos podem ler, e os termos pedem para não enviar informação confidencial
-    (Gemini API Additional Terms, seção "How Google Uses Your Data", Unpaid Services).
-    Não use o Gemini gratuito com documentos de distribuição restrita.
-  - Groq: por padrão não retém dados de inferência; pode guardar até 30 dias para
-    confiabilidade e abuso (console.groq.com/docs/your-data). A página não fala de treino.
-  - Ollama Cloud: "Prompt or response data is never logged or trained on" (ollama.com/cloud).
-- O verificador não confere se o trecho sustenta o sentido da frase: isso continua sendo da pessoa.
-
-## Ollama no Docker
-
-O agente usa o contêiner `ollama-novo` (Ollama 0.40.6, porta 11435, contexto de 8192 tokens).
-`preparar_ollama.bat` cria o contêiner, baixa o modelo local e faz uma pergunta de teste.
-Se o Docker travar ao abrir, use `consertar_docker.bat`: renomeia as pastas de `.sock` antigas e reabre o Docker.
-
-O contêiner antigo, descrito abaixo, continua com o Qwen3 1,7B.
-
-O contêiner `ollama-porta` repassa a porta 11434 do Windows para o contêiner `ollama`
-(rede `te251`), sem mexer no que o n8n usa. Se o Docker não subir com erro de `.sock`,
-renomeie a pasta citada no erro (em `%LOCALAPPDATA%\Docker\run` ou
-`%LOCALAPPDATA%\docker-secrets-engine`) e abra o Docker de novo.
+MIT for the source code (`LICENSE`). The corpus PDFs are not included; PDF.js in `web/vendor` is
+Apache-2.0.

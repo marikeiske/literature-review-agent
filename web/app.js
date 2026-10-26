@@ -68,7 +68,10 @@ async function api(caminho, dados) {
 function explicarErro(erro) {
   if (/429|RateLimit|rate.limit/i.test(erro)) return "O limite gratuito deste modelo acabou por agora. Escolha outro modelo no seletor acima ou tente mais tarde.";
   if (/413|too large/i.test(erro)) return "A conversa ficou grande demais para o plano gratuito. Clique em Nova conversa e pergunte de novo.";
-  if (/Connection|connect|recusad/i.test(erro)) return "Não consegui falar com o provedor. Se o modelo for o local, abra o Docker Desktop e tente de novo.";
+  if (/Timeout|timed out/i.test(erro)) return "O provedor demorou mais de 2 minutos para responder. Tente de novo ou escolha outro modelo no seletor acima.";
+  if (/402|not included in your free/i.test(erro)) return "Este modelo saiu do plano gratuito do provedor. Escolha outro no seletor acima.";
+  if (/401|invalid.api.key|Unauthorized/i.test(erro)) return "A chave deste provedor no arquivo .env não foi aceita. Confira a chave ou escolha outro modelo.";
+  if (/Connection|connect|recusad/i.test(erro)) return "Não consegui falar com o provedor. Se o modelo for do Ollama, confira se o Docker Desktop está aberto (consertar_docker.bat) e tente de novo.";
   if (/503|UNAVAILABLE|high demand/i.test(erro)) return "O modelo está sobrecarregado no provedor agora. Tente de novo em alguns minutos ou escolha outro modelo no seletor acima.";
   if (/404|model_not_found/i.test(erro)) return "O provedor não reconhece esse modelo. Escolha outro no seletor acima.";
   return "O provedor devolveu um erro. Tente de novo ou troque de modelo.";
@@ -592,7 +595,7 @@ function montarFiltro() {
   // Artigo: caixa separada, só no gabarito
   const a = $("#rev-artigo");
   a.innerHTML = "";
-  const artigos = rev.dados.tipo === "gabarito" ? [...new Set(rev.dados.itens.map((i) => i.artigo))] : [];
+  const artigos = rev.dados.tipo !== "negativas" ? [...new Set(rev.dados.itens.map((i) => i.artigo))] : [];
   a.closest("label").hidden = !artigos.length;
   a.append(el("option", { value: "" }, "Todos"));
   for (const art of artigos) a.append(el("option", { value: art }, art));
@@ -717,6 +720,13 @@ function desenharCartao() {
     if (it.observacao) c.append(el("p", { class: "rev-nota" }, it.observacao));
     if (it.claude) c.append(blocoClaude(it));
     c.append(el("p", { class: "rev-pergunta-guia" }, "A página sustenta a afirmação, do jeito que ela está escrita?"));
+  } else if (rev.dados.tipo === "sentido") {
+    // Revisão de sentido: a avaliação automática só confere o número da página; aqui vale o conteúdo
+    c.append(
+      el("p", { class: "rev-meta", html: `<span class="rev-id">${esc(it.id)}</span> · ${esc(it.artigo)} · ${esc(it.tipo)} · ${esc(it.posicao)} do documento` }),
+      el("h2", { class: "rev-texto" }, it.texto),
+      el("div", { class: "rev-bloco agente" }, el("h3", {}, "Resposta do agente"), el("p", {}, textoComAbas(it.resposta.replace(/^-\s+/, "")))),
+      el("p", { class: "rev-pergunta-guia" }, "A página citada sustenta a afirmação? Confira o conteúdo, não só o número da página."));
   } else {
     const modo = it.modo === "corrigir" ? "o certo é corrigir a premissa" : "o certo é recusar";
     c.append(
