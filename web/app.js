@@ -457,7 +457,7 @@ function proximaPendente() {
   aviso("Tudo revisado neste conjunto.");
 }
 
-// Pré-conferência do Claude: sugestão, trecho literal da página e observação. É rascunho:
+// Pré-conferência da AI: sugestão, trecho literal da página e observação. É rascunho:
 // a tela deixa isso explícito e nada daqui é gravado como revisão.
 function blocoClaude(it) {
   const pc = it.claude;
@@ -468,14 +468,14 @@ function blocoClaude(it) {
     `${it.artigo.replace(/\d{4}$/, "")} p. ${pc.pagina}`);
   aba.addEventListener("click", () => abrirFonte(it.artigo, pc.pagina, { numeros: [], termos: [], trecho: pc.trecho }, aba));
   const bloco = el("details", { class: "rev-claude" },
-    el("summary", {}, "Pré-conferência do Claude (rascunho) ", chip),
+    el("summary", {}, "Pré-conferência da AI ", chip),
     el("blockquote", { class: "rev-trecho" }, `“${pc.trecho}” `, aba));
   if (pc.nota) bloco.append(el("p", { class: "rev-claude-nota" }, pc.nota));
   if (corrigir) {
     const usar = el("button", { type: "button", class: "botao-texto" }, `Escrever “${pc.correcao}” na correção`);
     usar.addEventListener("click", () => {
       const nota = $("#rev-nota");
-      nota.value = `${pc.correcao} (sugestão do Claude, conferida por mim)`;
+      nota.value = `${pc.correcao} (sugestão da AI, conferida por mim)`;
       nota.focus();
     });
     bloco.append(usar);
