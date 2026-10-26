@@ -7,6 +7,7 @@ const NUMERO = /(?<![\w.])\d+(?:[.,]\d+)?/g;
 
 // Acerto = página exata nas 109 afirmações do gabarito, condição RAG (resultados/resumo_numeros.md, 26/10/2026).
 // O primeiro modelo disponível do grupo "Recomendados" é o padrão.
+// O modelo local (Bonsai 2 4B) saiu da lista em 26/10: só em CPU leu o prompt a 3,66 tokens/s, inviável.
 const MODELOS = [
   { grupo: "Recomendados", alvo: "ollama:nemotron-3-ultra:cloud", rotulo: "Nemotron 3 Ultra · Ollama Cloud · 97%", provedor: "ollama" },
   { grupo: "Recomendados", alvo: "groq", rotulo: "GPT-OSS 120B · Groq · 95%", provedor: "groq" },
@@ -15,7 +16,6 @@ const MODELOS = [
   { grupo: "Outros", alvo: "gemini", rotulo: "Gemini Flash-Lite · Google · 91%", provedor: "gemini" },
   { grupo: "Outros", alvo: "groq:qwen/qwen3.8-27b", rotulo: "Qwen3.8 27B · Groq · amostra de 80", provedor: "groq" },
   { grupo: "Outros", alvo: "openrouter", rotulo: "Nemotron 3 Ultra · OpenRouter · não avaliado", provedor: "openrouter" },
-  { grupo: "Local (sem internet)", alvo: "ollama", rotulo: "Bonsai 2 4B · muito lento · não avaliado", provedor: "ollama" },
 ];
 const EXEMPLOS = [
   "Quanto a arquitetura de Nimbekar consome na FPGA?",

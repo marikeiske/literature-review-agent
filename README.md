@@ -46,7 +46,7 @@ python -m agente.corpus
 | Gemini | `gemini-flash-lite-latest` | plano gratuito do AI Studio; limites por modelo, ver no AI Studio |
 | OpenRouter | `nvidia/nemotron-3-ultra-550b-a55b:free` | 50 requisições/dia sem comprar créditos (o Super saiu do ar em 20/10) |
 | Ollama Cloud | `gemma4:31b-cloud`, `gpt-oss:120b-cloud`, `nemotron-3-ultra:cloud` (o `minimax-m3.1-flash:cloud` saiu do plano gratuito em 23/10) | plano gratuito com limite por sessão (5 h) e por semana; precisa do Docker aberto e da conta conectada (`docker exec -it ollama-novo ollama signin`) |
-| Ollama (local) | `bonsai-2:4b` | sem limite, mas lê o prompt a ~3,7 tokens/s na CPU (21/10): inviável para o agente |
+| Ollama (local) | `bonsai-2:4b` | fora da interface desde 26/10: lê o prompt a ~3,7 tokens/s na CPU (21/10), inviável; continua acessível pelo terminal (`/model ollama`) |
 
 Dentro do agente, troque com `/model groq`, `/model gemini`, `/model openrouter` ou `/model ollama:qwen2.5:1.5b`.
 Para ver os modelos gratuitos do momento: `python listar_modelos.py`.
