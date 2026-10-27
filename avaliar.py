@@ -100,7 +100,7 @@ def registrar_execucao(agente: Agente, tipo: str, condicao: str, arquivo: Path):
     import openai
     gab = revisao.ARQ_REV_GABARITO
     linha = {
-        "quando": time.strftime("%Y-%m-%dT%H:%M:%S"), "tipo": tipo, "condicao": condicao,
+        "data": time.strftime("%Y-%m-%d"), "tipo": tipo, "condicao": condicao,  # só a data: horário é pessoal
         "modelo": agente.rotulo, "arquivo": arquivo.name,
         "commit": git("rev-parse", "--short", "HEAD"), "codigo_alterado": bool(git("status", "--porcelain", "--", "agente", "avaliar.py")),
         "sha_system_prompt": _sha256(montar_system_prompt().encode("utf-8")),

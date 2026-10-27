@@ -22,3 +22,15 @@ def test_paginas_da_planilha():
     assert revisao.paginas_de("7–8") == [7, 8]
     assert revisao.paginas_de("3, 5") == [3, 5]
     assert revisao.paginas_de(None) == []
+
+
+def test_horario_da_decisao_nao_vai_para_o_csv(tmp_path, monkeypatch):
+    # O horário de cada decisão é dado pessoal da autora: só no arquivo privado (logs/), nunca no CSV versionado
+    monkeypatch.setattr(revisao, "ARQ_HORARIOS", tmp_path / "logs" / "revisao_horarios.jsonl")
+    csv_rev = tmp_path / "revisao_teste.csv"
+    linha = revisao.gravar_revisao(csv_rev, "A1-01", "Aprovada", "ok")
+    assert linha["quando"]  # a interface ainda mostra "Gravado em …"
+    conteudo = csv_rev.read_text(encoding="utf-8-sig")
+    assert conteudo.splitlines()[0] == "id;status;comentario"
+    assert linha["quando"] not in conteudo
+    assert revisao.ler_revisoes(csv_rev)["A1-01"]["quando"] == linha["quando"]

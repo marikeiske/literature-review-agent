@@ -1,7 +1,9 @@
 """Revisão humana (HITL) da avaliação: gabarito e respostas às perguntas negativas.
 
-A tela "Revisar" da interface (app.py) grava aqui as decisões da autora. Cada decisão é
-uma linha de CSV com data e hora, para o artigo poder dizer quem revisou o quê e quando.
+A tela "Revisar" da interface (app.py) grava aqui as decisões da autora: uma linha de CSV por item
+(id, decisão, comentário). O horário de cada decisão é dado pessoal da autora: fica só na máquina
+dela, em logs/revisao_horarios.jsonl (logs/ não vai para o repositório), e serve apenas para a
+interface mostrar "Gravado em …".
 
   revisao_gabarito.csv                  Status de cada afirmação do gabarito
                                         (Aprovada, Corrigir, Rejeitar) e a correção.
@@ -41,7 +43,8 @@ OPCOES = {"gabarito": ["Aprovada", "Corrigir", "Rejeitar"],
 SENTIDO_RODADA = "aval_ollama_nemotron-3-ultra_cloud_rag"  # melhor modelo na avaliação de 26/10
 SENTIDO_AMOSTRA = 30
 SENTIDO_SEMENTE = 2026
-CAMPOS = ["id", "status", "comentario", "quando"]
+CAMPOS = ["id", "status", "comentario"]  # sem horário: ver ARQ_HORARIOS
+ARQ_HORARIOS = RAIZ / "logs" / "revisao_horarios.jsonl"  # privado (logs/ está no .gitignore)
 _trava = threading.Lock()
 
 
@@ -74,19 +77,43 @@ def paginas_corrigidas(comentario: str) -> list[int]:
 
 
 # ---------- leitura e gravação das decisões ----------
+def _horarios(arquivo: Path) -> dict[str, str]:
+    """Último horário gravado de cada item deste arquivo de revisão (só existe na máquina da autora)."""
+    if not ARQ_HORARIOS.exists():
+        return {}
+    saida = {}
+    with open(ARQ_HORARIOS, encoding="utf-8") as f:
+        for linha in f:
+            try:
+                h = json.loads(linha)
+            except json.JSONDecodeError:
+                continue
+            if h.get("arquivo") == arquivo.name:
+                saida[h["id"]] = h.get("quando", "")
+    return saida
+
+
 def ler_revisoes(arquivo: Path) -> dict[str, dict]:
     if not arquivo.exists():
         return {}
     with open(arquivo, encoding="utf-8-sig") as f:
-        return {l["id"]: l for l in csv.DictReader(f, delimiter=";")}
+        revs = {l["id"]: {k: l.get(k, "") for k in CAMPOS} for l in csv.DictReader(f, delimiter=";")}
+    for id_, quando in _horarios(arquivo).items():
+        if id_ in revs:
+            revs[id_]["quando"] = quando
+    return revs
 
 
 def gravar_revisao(arquivo: Path, id_: str, status: str, comentario: str) -> dict:
     with _trava:
         revs = ler_revisoes(arquivo)
-        linha = {"id": id_, "status": status, "comentario": comentario.strip(),
-                 "quando": time.strftime("%Y-%m-%d %H:%M")}
+        quando = time.strftime("%Y-%m-%d %H:%M")
+        linha = {"id": id_, "status": status, "comentario": comentario.strip(), "quando": quando}
         revs[id_] = linha
+        ARQ_HORARIOS.parent.mkdir(exist_ok=True)
+        with open(ARQ_HORARIOS, "a", encoding="utf-8") as f:
+            f.write(json.dumps({"arquivo": arquivo.name, "id": id_, "status": status, "quando": quando},
+                               ensure_ascii=False) + "\n")
         tmp = arquivo.with_suffix(".tmp")
         with open(tmp, "w", newline="", encoding="utf-8-sig") as f:
             w = csv.DictWriter(f, fieldnames=CAMPOS, delimiter=";")

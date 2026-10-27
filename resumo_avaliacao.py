@@ -68,7 +68,7 @@ def nome_modelo(stem):
 def main():
     gab = {g["id"]: g for g in avaliar.carregar_gabarito()}
     original = {g["id"]: set(g["paginas"]) for g in revisao.ler_gabarito()}
-    out = [f"# Números da avaliação (gerado em {time.strftime('%Y-%m-%d %H:%M')} por resumo_avaliacao.py)", "",
+    out = [f"# Números da avaliação (gerado em {time.strftime('%Y-%m-%d')} por resumo_avaliacao.py)", "",
            f"Gabarito: {len(gab)} afirmações, com a revisão da autora aplicada (revisao_gabarito.csv).", ""]
 
     # ---- afirmações ----
@@ -165,9 +165,8 @@ def main():
     st = Counter(r["status"] for i, r in revs.items() if i in gab)
     cruz = Counter((pre.get(i, {}).get("sugestao"), r["status"]) for i, r in revs.items() if i in gab)
     muda_pag = [i for i, r in revs.items() if r["status"] == "Corrigir" and revisao.paginas_corrigidas(r["comentario"])]
-    datas = sorted(r["quando"] for r in revs.values() if r.get("quando"))
     out += ["", "## Revisão humana do gabarito (HITL)", "",
-            f"- Revisadas: {sum(st.values())} de {len(gab)} ({datas[0]} a {datas[-1]}). " + ", ".join(f"{k}: {v}" for k, v in st.items()),
+            f"- Revisadas: {sum(st.values())} de {len(gab)}. " + ", ".join(f"{k}: {v}" for k, v in st.items()),
             f"- Correções que mudam a página: {len(muda_pag)} ({', '.join(sorted(muda_pag))}); as outras corrigem o texto da paráfrase.",
             "- Pré-conferência do Claude × decisão da autora: " + "; ".join(f"Claude {a} → autora {b}: {v}" for (a, b), v in sorted(cruz.items())),
             ""]
