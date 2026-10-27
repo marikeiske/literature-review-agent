@@ -80,7 +80,7 @@ Na interface, a aba **Revisar** mostra um item por vez, com a página da fonte a
   afirmação. Grava em `resultados/revisao_sentido_<rodada>.csv`.
 
 
-Teclas 1, 2 e 3 decidem; as setas navegam. Cada decisão fica com data e hora. Para anexar ao
+Teclas 1, 2 e 3 decidem; as setas navegam. Cada decisão vai para um CSV (id, decisão, comentário); o horário fica só no seu computador, em `logs/`. Para anexar ao
 artigo, `python revisar_negativas.py` exporta a revisão das negativas para planilha.
 
 Se a cota do dia acabar, rode o mesmo comando no dia seguinte: ele continua de onde parou.

@@ -21,6 +21,8 @@ que grounding, evals, harness e HITL mitigam (Semana 2, p. 52).
 - Só modelos sem custo de API: Ollama local, Ollama Cloud (plano gratuito), Groq (plano gratuito),
   Gemini (plano gratuito) e OpenRouter (modelos `:free`).
 - Nunca versione `.env`, `corpus/*.pdf`, `logs/` ou `fichamentos/`.
+- O horário de cada decisão da autora é dado pessoal, como uma chave de API: fica só em
+  `logs/revisao_horarios.jsonl`. Nenhum arquivo versionado leva horário de revisão (só data, quando preciso).
 - O servidor da interface só aceita pedidos da própria página (Host, Origin e JSON conferidos em
   `app.py`). Não afrouxe essas checagens nem abra o servidor para fora de `127.0.0.1`.
 - Contêineres publicam porta só em `127.0.0.1` e usam versão fixa (nada de `:latest`).
@@ -112,6 +114,7 @@ python main.py       (terminal)
 | 26/10 | Nada provava que o system prompt estava congelado entre rodadas | Cada rodada grava commit e hash do prompt e do gabarito | `avaliar.py` (`registrar_execucao`) |
 | 26/10 | Avaliação só mede o número da página, não o sentido | Revisão de sentido numa amostra fixa de 30 respostas | `revisao.py` (`itens_sentido`), aba Revisar |
 | 26/10 | Provedor travado prendia a interface por até 10 min | Tempo limite de 120 s por chamada | `agente/harness.py` |
+| 26/10 | CSVs de revisão publicavam o horário de cada decisão da autora | Horário só em `logs/revisao_horarios.jsonl`; histórico do git reescrito sem horários (envio forçado autorizado pela autora) | `revisao.py`, teste em `tests/test_revisao.py` |
 
 ## Quando uma falha se repetir
 

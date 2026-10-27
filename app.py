@@ -11,7 +11,7 @@ O botão "Histórico" mostra as perguntas anteriores feitas na interface, lidas 
 (somente leitura), com a decisão humana que cada uma recebeu.
 
 A aba "Revisar" é o HITL da avaliação: você confere o gabarito e as respostas às
-perguntas negativas, e cada decisão vai para um CSV com data e hora (revisao.py).
+perguntas negativas, e cada decisão vai para um CSV (revisao.py); o horário fica só em logs/, fora do repositório.
 """
 import json
 import mimetypes
