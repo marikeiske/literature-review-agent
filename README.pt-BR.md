@@ -93,13 +93,16 @@ Outros testes: `python teste_rapido.py groq "pergunta"` e `python -m experimento
 
 ```
 pip install -r requirements-dev.txt
-pytest                      verificador, leitura de páginas, segurança do servidor, estatística
+python -m playwright install chromium     (uma vez, para os testes de interface)
+pytest                      verificador, leitura de páginas, segurança do servidor, estatística e interface
 ruff check .                lint
 python -m pip_audit -r requirements.txt
 ```
 
 O GitHub Actions (`.github/workflows/testes.yml`) roda os três a cada envio. Os testes não
-precisam do corpus nem de chaves.
+precisam do corpus nem de chaves. Os de interface (`tests/ui`, Playwright) montam uma cópia do projeto
+com PDFs sintéticos numa pasta temporária e sobem o servidor na porta 8790+, então não mexem nos seus
+arquivos nem na interface aberta.
 
 ## Reprodutibilidade
 

@@ -84,11 +84,13 @@ lists each source and its SHA-256, and `python corpus_fontes.py --conferir` chec
 
 ```
 pip install -r requirements-dev.txt
-pytest            verifier, page parsing, local-server security, statistics
+python -m playwright install chromium    (once, for the UI tests)
+pytest            verifier, page parsing, local-server security, statistics, end-to-end UI
 ruff check .
 ```
 
-GitHub Actions runs tests, lint and `pip-audit` on every push. Project rules for coding agents are in
+GitHub Actions runs tests, lint and `pip-audit` on every push. The UI tests (`tests/ui`, Playwright) run the
+server on a temporary copy of the project with synthetic PDFs, so they never touch real files. Project rules for coding agents are in
 `AGENTS.md`.
 
 ## Security

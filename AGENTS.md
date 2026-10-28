@@ -115,6 +115,7 @@ python main.py       (terminal)
 | 26/10 | Avaliação só mede o número da página, não o sentido | Revisão de sentido numa amostra fixa de 30 respostas | `revisao.py` (`itens_sentido`), aba Revisar |
 | 26/10 | Provedor travado prendia a interface por até 10 min | Tempo limite de 120 s por chamada | `agente/harness.py` |
 | 26/10 | CSVs de revisão publicavam o horário de cada decisão da autora | Horário só em `logs/revisao_horarios.jsonl`; histórico do git reescrito sem horários (envio forçado autorizado pela autora) | `revisao.py`, teste em `tests/test_revisao.py` |
+| 28/10 | No Windows, dois servidores abriam a mesma porta (SO_REUSEADDR do Python): pedidos de teste podiam cair na interface de verdade | `SO_EXCLUSIVEADDRUSE` no Windows; testes de interface em porta própria (8790+) | `app.py` (`ServidorLocal`), `tests/ui/conftest.py` |
 
 ## Quando uma falha se repetir
 

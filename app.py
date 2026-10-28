@@ -15,7 +15,9 @@ perguntas negativas, e cada decisão vai para um CSV (revisao.py); o horário fi
 """
 import json
 import mimetypes
+import os
 import re
+import socket
 import threading
 import time
 import uuid
@@ -47,7 +49,6 @@ jobs: dict[str, dict] = {}
 
 
 def _tem_chave(nome: str) -> bool:
-    import os
     from dotenv import load_dotenv
     load_dotenv(RAIZ / ".env", override=True)  # chave colada com a interface aberta já conta
     env = PROVEDORES[nome]["api_key_env"]
@@ -382,22 +383,38 @@ class Manipulador(BaseHTTPRequestHandler):
         return self._json({"erro": "não encontrado"}, 404)
 
 
+class ServidorLocal(ThreadingHTTPServer):
+    """Servidor que não divide a porta com outro programa.
+
+    No Windows, o HTTPServer do Python liga SO_REUSEADDR, e aí dois servidores abrem a MESMA porta
+    sem erro: os pedidos caem em qualquer um deles (achado em 28/10, nos testes de interface).
+    SO_EXCLUSIVEADDRUSE faz a segunda tentativa falhar, e o laço de main() passa para a próxima porta."""
+    daemon_threads = True
+    if os.name == "nt":
+        allow_reuse_address = False
+
+        def server_bind(self):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+            super().server_bind()
+
+
 def main():
-    porta = PORTA
+    porta = int(os.getenv("MESA_PORTA") or PORTA)  # os testes de interface usam outra faixa de portas
     for _ in range(10):
         try:
-            servidor = ThreadingHTTPServer(("127.0.0.1", porta), Manipulador)
+            servidor = ServidorLocal(("127.0.0.1", porta), Manipulador)
             break
         except OSError:
             porta += 1
     else:
-        raise SystemExit("Nenhuma porta livre entre 8765 e 8774.")
+        raise SystemExit(f"Nenhuma porta livre a partir de {int(os.getenv('MESA_PORTA') or PORTA)}.")
     global porta_ativa
     porta_ativa = porta
     endereco = f"http://127.0.0.1:{porta}"
     print(f"Mesa de revisão aberta em {endereco}  (Ctrl+C para encerrar)")
     print(f"Modelo: {agente.rotulo} · log: {agente.arquivo_log}")
-    threading.Timer(0.8, lambda: webbrowser.open(endereco)).start()
+    if not os.getenv("MESA_SEM_NAVEGADOR"):  # os testes de interface (tests/ui) abrem o próprio navegador
+        threading.Timer(0.8, lambda: webbrowser.open(endereco)).start()
     try:
         servidor.serve_forever()
     except KeyboardInterrupt:

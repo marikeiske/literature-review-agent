@@ -20,10 +20,12 @@ jobs:
           cache: pip
           cache-dependency-path: requirements-dev.txt
       - name: Dependências
-        run: pip install -r requirements-dev.txt
+        run: |
+          pip install -r requirements-dev.txt
+          python -m playwright install --with-deps chromium
       - name: Lint (ruff)
         run: ruff check .
-      - name: Testes (pytest)
+      - name: Testes (pytest, inclusive interface com Playwright)
         run: pytest -q
       - name: Auditoria de dependências (pip-audit)
         run: pip-audit -r requirements.txt
