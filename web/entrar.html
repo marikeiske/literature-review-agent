@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entrar · Mesa de revisão</title>
+  <link rel="stylesheet" href="/estilo.css">
+</head>
+<body class="entrar">
+  <main class="entrar-folha">
+    <h1>Mesa de revisão</h1>
+    <p>Acesso pelo celular. Digite o código de acesso, que está no arquivo <code>.env</code> do notebook,
+      em <code>MESA_CODIGO</code>. Este aparelho fica lembrado por 30 dias.</p>
+    <form id="form-entrar" autocomplete="off">
+      <label for="codigo">Código de acesso</label>
+      <input id="codigo" name="codigo" type="password" autocapitalize="none" autocorrect="off" spellcheck="false"
+             required aria-describedby="entrar-erro">
+      <button class="botao-principal" type="submit">Entrar</button>
+      <p id="entrar-erro" class="entrar-erro" role="alert"></p>
+    </form>
+  </main>
+  <script src="/entrar.js"></script>
+</body>
+</html>

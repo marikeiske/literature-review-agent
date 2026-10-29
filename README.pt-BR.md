@@ -23,6 +23,25 @@ não está na página, ✗ página não lida ou recusa sem ler nada, ! frase sem
 **Histórico**: as perguntas anteriores, lidas dos logs, com a decisão que cada uma recebeu.
 **Revisar**: a revisão humana da avaliação (abaixo).
 
+## Abrir pelo celular (opcional)
+
+O notebook precisa ficar ligado com a interface aberta. O acesso passa pelo
+[Tailscale](https://tailscale.com), uma rede privada só entre os seus aparelhos (plano Personal gratuito):
+o celular enxerga o notebook de qualquer lugar e ninguém mais enxerga.
+
+1. Instale o Tailscale no notebook e no celular e entre com a mesma conta nos dois.
+2. No `.env`, acrescente `MESA_REMOTO=1`.
+3. Abra a interface como sempre (`abrir_agente.bat`). Na primeira vez ela cria um código de acesso,
+   grava em `MESA_CODIGO` no `.env` e mostra o endereço para o celular, por exemplo
+   `http://nome-do-notebook:8765`. Se o Windows perguntar sobre o firewall, permita só em **redes privadas**.
+4. No celular, com o Tailscale ligado, abra esse endereço e digite o código. O aparelho fica
+   lembrado por 30 dias.
+
+O servidor do celular escuta só no endereço do Tailscale (100.x), nunca no Wi-Fi. Sem o código, ele só
+mostra a tela de entrada; cinco códigos errados bloqueiam por 10 minutos. Para tirar o acesso de um
+aparelho, troque o `MESA_CODIGO` (ou apague a linha: um novo é criado) e reabra a interface.
+No notebook (`127.0.0.1`) nada muda.
+
 ## Rodar no terminal do VS Code (Windows)
 
 1. Abra esta pasta no VS Code (Arquivo → Abrir Pasta).

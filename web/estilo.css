@@ -449,3 +449,21 @@ select {
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* ---------- entrada pelo celular (entrar.html) ---------- */
+body.entrar { display: grid; place-items: center; padding: 16px; }
+.entrar-folha {
+  width: 100%; max-width: 420px; padding: 28px 24px;
+  background: var(--folha); border: 1px solid var(--linha); border-radius: var(--raio);
+}
+.entrar-folha h1 { margin: 0 0 8px; font-size: 22px; letter-spacing: -0.02em; }
+.entrar-folha p { margin: 0 0 18px; color: var(--tinta-suave); font-size: 14.5px; }
+.entrar-folha code { font-size: 13px; color: var(--tinta); }
+#form-entrar { display: flex; flex-direction: column; gap: 8px; }
+#form-entrar label { font-size: 13px; font-weight: 600; }
+#form-entrar input {
+  font: inherit; font-size: 16px; color: var(--tinta); background: var(--folha);
+  border: 1px solid var(--borda-campo); border-radius: var(--raio); padding: 10px 12px;
+}
+#form-entrar .botao-principal { padding: 10px 16px; }
+.entrar-folha .entrar-erro { min-height: 1.4em; margin: 0; color: var(--lapis); font-size: 14px; }

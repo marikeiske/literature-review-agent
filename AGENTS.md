@@ -24,7 +24,9 @@ que grounding, evals, harness e HITL mitigam (Semana 2, p. 52).
 - O horário de cada decisão da autora é dado pessoal, como uma chave de API: fica só em
   `logs/revisao_horarios.jsonl`. Nenhum arquivo versionado leva horário de revisão (só data, quando preciso).
 - O servidor da interface só aceita pedidos da própria página (Host, Origin e JSON conferidos em
-  `app.py`). Não afrouxe essas checagens nem abra o servidor para fora de `127.0.0.1`.
+  `seguranca.py`). Não afrouxe essas checagens nem abra o servidor para fora de `127.0.0.1`. A única
+  exceção é o acesso pelo celular (`MESA_REMOTO=1`): só no endereço do Tailscale (100.64.0.0/10), nunca
+  em `0.0.0.0` nem no Wi-Fi, e sempre com o código `MESA_CODIGO`, que fica só no `.env`.
 - Contêineres publicam porta só em `127.0.0.1` e usam versão fixa (nada de `:latest`).
 - Documentos de distribuição restrita não vão para provedor cujo plano gratuito treina com os
   dados (Gemini gratuito). Ver "Segurança e privacidade" no README.
@@ -117,6 +119,7 @@ python main.py       (terminal)
 | 26/10 | CSVs de revisão publicavam o horário de cada decisão da autora | Horário só em `logs/revisao_horarios.jsonl`; histórico do git reescrito sem horários (envio forçado autorizado pela autora) | `revisao.py`, teste em `tests/test_revisao.py` |
 | 28/10 | No Windows, dois servidores abriam a mesma porta (SO_REUSEADDR do Python): pedidos de teste podiam cair na interface de verdade | `SO_EXCLUSIVEADDRUSE` no Windows; testes de interface em porta própria (8790+) | `app.py` (`ServidorLocal`), `tests/ui/conftest.py` |
 | 29/10 | Auditoria WCAG 2.1 AA achou 18 problemas: página do PDF sem acesso por teclado, bordas de campo com 1,3:1, atalhos 1/2/3 valendo na página toda, foco invisível na caixa de pergunta, 320 px com rolagem lateral | Correções em `web/`; atalhos só com foco no cartão; Esc fecha a página; setas nas abas. Toda mudança de tela passa no axe sem violação | `web/`, `tests/ui/test_acessibilidade.py` |
+| 29/10 | A autora quer usar a mesa pelo celular, longe do notebook; abrir a porta no Wi-Fi exporia as chaves e o corpus sem senha | Modo remoto opcional: servidor só no endereço do Tailscale, código de acesso do `.env`, cookie HttpOnly derivado do código, bloqueio após 5 erros | `app.py` (`abrir_remoto`), `seguranca.py`, `web/entrar.*`, `tests/ui/test_remoto.py` |
 
 ## Quando uma falha se repetir
 

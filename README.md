@@ -98,7 +98,9 @@ on every tab and checks keyboard and focus behaviour. Project rules for coding a
 
 The local server only listens on `127.0.0.1` and rejects requests from other origins (Host, Origin and
 JSON content type are checked), which blocks cross-site requests and DNS rebinding. Agent tools are
-read-only. See `seguranca.py` and `tests/test_seguranca.py`.
+read-only. See `seguranca.py` and `tests/test_seguranca.py`. Optional phone access (`MESA_REMOTO=1`)
+adds a second listener bound only to the machine's Tailscale address, gated by an access code kept in `.env`
+(`tests/ui/test_remoto.py`).
 
 ## License
 

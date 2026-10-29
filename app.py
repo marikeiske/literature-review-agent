@@ -12,12 +12,16 @@ O botão "Histórico" mostra as perguntas anteriores feitas na interface, lidas 
 
 A aba "Revisar" é o HITL da avaliação: você confere o gabarito e as respostas às
 perguntas negativas, e cada decisão vai para um CSV (revisao.py); o horário fica só em logs/, fora do repositório.
+
+Pelo celular (opcional): com MESA_REMOTO=1 no .env, abre também um servidor no endereço do
+Tailscale, protegido pelo código MESA_CODIGO (regras em seguranca.py; passo a passo no README).
 """
 import json
 import mimetypes
 import os
 import re
 import socket
+import subprocess
 import threading
 import time
 import uuid
@@ -46,6 +50,7 @@ CSP = ("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' 
 agente = Agente()
 trava_agente = threading.Lock()  # uma pergunta por vez
 jobs: dict[str, dict] = {}
+tentativas = seguranca.Tentativas()  # códigos errados no acesso pelo celular
 
 
 def _tem_chave(nome: str) -> bool:
@@ -250,7 +255,50 @@ class Manipulador(BaseHTTPRequestHandler):
             self.send_header("Content-Security-Policy", CSP)
 
     def _pedido_confiavel(self, post: bool) -> bool:
-        return seguranca.pedido_confiavel(self.headers, porta_ativa, post)
+        return seguranca.pedido_confiavel(self.headers, porta_ativa, post, self.server.hosts_extra)
+
+    # ---------- acesso pelo celular ----------
+    LIVRES_SEM_CODIGO = {"/entrar", "/entrar.js", "/estilo.css"}
+
+    def _barrar_sem_codigo(self, post: bool) -> bool:
+        """No servidor do Tailscale, responde e devolve True se o pedido não traz sessão válida."""
+        if not self.server.remoto:
+            return False
+        if seguranca.cookie_valido(self.headers.get("Cookie", ""), self.server.codigo):
+            return False
+        caminho = urlparse(self.path).path
+        if (not post and caminho in self.LIVRES_SEM_CODIGO) or (post and caminho == "/api/entrar"):
+            return False
+        if not post and caminho in ("/", "/index.html"):
+            self.send_response(303)
+            self.send_header("Location", "/entrar")
+            self._cabecalhos_seguranca()
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+        else:
+            self._json({"erro": "Entre com o código de acesso."}, 401)
+        return True
+
+    def _entrar(self, dados: dict):
+        if not self.server.remoto:
+            return self._json({"erro": "não encontrado"}, 404)
+        if tentativas.bloqueado():
+            return self._json({"erro": "Muitos códigos errados. Espere 10 minutos."}, 429)
+        certo = seguranca.codigo_confere(str(dados.get("codigo") or ""), self.server.codigo)
+        tentativas.registrar(certo)
+        if not certo:
+            time.sleep(1)  # deixa a adivinhação lenta
+            return self._json({"erro": "Código errado."}, 401)
+        corpo = b'{"ok": true}'
+        self.send_response(200)
+        self.send_header("Set-Cookie", f"{seguranca.COOKIE}={seguranca.token_sessao(self.server.codigo)}; "
+                                       "Max-Age=2592000; Path=/; HttpOnly; SameSite=Strict")
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
+        self._cabecalhos_seguranca()
+        self.send_header("Content-Length", str(len(corpo)))
+        self.end_headers()
+        self.wfile.write(corpo)
 
     def _arquivo(self, caminho, tipo=None):
         if not caminho.is_file():
@@ -274,10 +322,16 @@ class Manipulador(BaseHTTPRequestHandler):
     def do_GET(self):
         if not self._pedido_confiavel(post=False):
             return self._json({"erro": "Pedido recusado: abra a interface em http://127.0.0.1."}, 403)
+        if self._barrar_sem_codigo(post=False):
+            return None
         url = urlparse(self.path)
         q = {k: v[0] for k, v in parse_qs(url.query).items()}
         if url.path in ("/", "/index.html"):
             return self._arquivo(PASTA_WEB / "index.html", "text/html; charset=utf-8")
+        if url.path == "/entrar" and self.server.remoto:
+            return self._arquivo(PASTA_WEB / "entrar.html", "text/html; charset=utf-8")
+        if url.path == "/entrar.js" and self.server.remoto:
+            return self._arquivo(PASTA_WEB / "entrar.js", "text/javascript; charset=utf-8")
         if url.path.startswith("/vendor/"):
             nome = url.path[len("/vendor/"):]
             if not seguranca.nome_vendor_valido(nome):
@@ -326,8 +380,12 @@ class Manipulador(BaseHTTPRequestHandler):
     def do_POST(self):
         if not self._pedido_confiavel(post=True):
             return self._json({"erro": "Pedido recusado: só a própria interface pode fazer alterações."}, 403)
+        if self._barrar_sem_codigo(post=True):
+            return None
         url = urlparse(self.path)
         dados = self._corpo()
+        if url.path == "/api/entrar":
+            return self._entrar(dados)
         if url.path == "/api/perguntar":
             pergunta = (dados.get("pergunta") or "").strip()
             if not pergunta:
@@ -390,12 +448,72 @@ class ServidorLocal(ThreadingHTTPServer):
     sem erro: os pedidos caem em qualquer um deles (achado em 28/10, nos testes de interface).
     SO_EXCLUSIVEADDRUSE faz a segunda tentativa falhar, e o laço de main() passa para a próxima porta."""
     daemon_threads = True
+    remoto = False  # True só no servidor do Tailscale (acesso pelo celular)
+    hosts_extra = frozenset()
+    codigo = ""
     if os.name == "nt":
         allow_reuse_address = False
 
         def server_bind(self):
             self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
             super().server_bind()
+
+
+def _ip_tailscale() -> tuple[str, set[str]]:
+    """Endereço 100.x deste computador no Tailscale e os nomes dele (MagicDNS). ("", set()) se não houver."""
+    nomes = {socket.gethostname().lower()}
+    ip = (os.getenv("MESA_IP_REMOTO") or "").strip()
+    try:
+        r = subprocess.run(["tailscale", "status", "--json"], capture_output=True, text=True, timeout=8)
+        eu = json.loads(r.stdout or "{}").get("Self", {})
+        if eu.get("DNSName"):
+            nome = eu["DNSName"].rstrip(".").lower()
+            nomes |= {nome, nome.split(".")[0]}
+        ip = ip or next((x for x in eu.get("TailscaleIPs", []) if "." in x), "")
+    except (OSError, ValueError, subprocess.SubprocessError):
+        pass
+    if not ip:  # sem o comando tailscale no PATH: procura um 100.x entre os endereços da máquina
+        try:
+            ends = {i[4][0] for i in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET)}
+            ip = next((x for x in sorted(ends) if seguranca.ip_remoto_valido(x) and not x.startswith("127.")), "")
+        except OSError:
+            ip = ""
+    return (ip, nomes) if seguranca.ip_remoto_valido(ip) else ("", set())
+
+
+def _codigo_de_acesso() -> str:
+    """Lê MESA_CODIGO do .env; se faltar ou for curto, cria um e acrescenta ao .env (que nunca vai ao git)."""
+    codigo = (os.getenv("MESA_CODIGO") or "").strip()
+    if seguranca.codigo_forte(codigo):
+        return codigo
+    codigo = seguranca.novo_codigo()
+    env = RAIZ / ".env"
+    fim = env.read_bytes()[-1:] if env.exists() else b"\n"
+    with open(env, "ab") as f:  # só acrescenta: as chaves que já estão no .env ficam intactas
+        f.write((b"" if fim in (b"\n", b"") else b"\n") + f"MESA_CODIGO={codigo}\n".encode())
+    os.environ["MESA_CODIGO"] = codigo
+    print(f"Código de acesso novo, gravado no .env: {codigo}")
+    return codigo
+
+
+def abrir_remoto(porta: int):
+    """Servidor para o celular: só no endereço do Tailscale, nunca no Wi-Fi nem em 0.0.0.0."""
+    ip, nomes = _ip_tailscale()
+    if not ip:
+        print("Acesso pelo celular: não achei o endereço do Tailscale (100.x). O Tailscale está ligado?")
+        return
+    try:
+        remoto = ServidorLocal((ip, porta), Manipulador)
+    except OSError as e:
+        print(f"Acesso pelo celular: não consegui abrir {ip}:{porta} ({e}).")
+        return
+    remoto.remoto = True
+    remoto.codigo = _codigo_de_acesso()
+    remoto.hosts_extra = frozenset(f"{h}:{porta}" for h in {ip, *nomes})
+    threading.Thread(target=remoto.serve_forever, daemon=True).start()
+    nome = max(nomes, key=len)
+    print(f"Pelo celular (Tailscale ligado nos dois): http://{nome}:{porta}  ou  http://{ip}:{porta}")
+    print("Na primeira vez o celular pede o código de acesso: está no .env, em MESA_CODIGO.")
 
 
 def main():
@@ -413,6 +531,8 @@ def main():
     endereco = f"http://127.0.0.1:{porta}"
     print(f"Mesa de revisão aberta em {endereco}  (Ctrl+C para encerrar)")
     print(f"Modelo: {agente.rotulo} · log: {agente.arquivo_log}")
+    if (os.getenv("MESA_REMOTO") or "").strip().lower() in ("1", "sim", "true"):
+        abrir_remoto(porta)
     if not os.getenv("MESA_SEM_NAVEGADOR"):  # os testes de interface (tests/ui) abrem o próprio navegador
         threading.Timer(0.8, lambda: webbrowser.open(endereco)).start()
     try:
