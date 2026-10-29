@@ -51,12 +51,16 @@ function el(tag, attrs = {}, ...filhos) {
   return n;
 }
 let avisoTimer;
+const AVISO_MS = 8000; // tempo para ler com calma (WCAG 2.2.1); o mouse em cima pausa
+function esconderAvisoDepois() {
+  clearTimeout(avisoTimer);
+  avisoTimer = setTimeout(() => ($("#aviso").hidden = true), AVISO_MS);
+}
 function aviso(msg) {
   const a = $("#aviso");
   a.textContent = msg;
   a.hidden = false;
-  clearTimeout(avisoTimer);
-  avisoTimer = setTimeout(() => (a.hidden = true), 4200);
+  esconderAvisoDepois();
 }
 async function api(caminho, dados) {
   const op = dados ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(dados) } : {};
@@ -229,7 +233,7 @@ function mostrarResposta(rodada, job, r) {
   rodada.scrollIntoView({ behavior: "smooth", block: "end" });
   // Abre logo a primeira página citada que o agente leu, para a conferência começar sem clique
   const primeira = lista.querySelector(".aba:not(.nao-lida)");
-  if (primeira) primeira.click();
+  if (primeira && telaLarga()) primeira.click(); // no celular a página vira gaveta e cobriria a resposta
 }
 
 function resumoLeitura(r, ok, comPagina) {
@@ -251,14 +255,15 @@ function linhaResposta(linha, rodada) {
 
   const v = VEREDITOS[linha.veredito];
   if (v) {
-    li.prepend(el("span", { class: `marca-margem ${v.classe}`, title: v.dica, "aria-label": `Verificador: ${linha.veredito}. ${v.dica}` }, v.sinal));
+    li.prepend(el("span", { class: `marca-margem ${v.classe}`, role: "img", title: v.dica, "aria-label": `Verificador: ${linha.veredito}. ${v.dica}` }, v.sinal));
     if (["página não lida", "recusa sem página lida", "sem citação"].includes(linha.veredito)) li.classList.add("alerta");
   }
   const numeros = [...corpo.matchAll(NUMERO)].map((m) => m[0]);
   for (const [a, p] of cits) {
     const naoLida = linha.veredito === "página não lida" && linha.detalhe.includes(`${a} p.${p}`);
-    const aba = el("button", { type: "button", class: `aba${naoLida ? " nao-lida" : ""}`, title: naoLida ? "O agente não leu esta página" : `Abrir ${a}, página ${p}` },
-      `${a.replace(/\d{4}$/, "")} p. ${p}`);
+    const rotulo = `${a.replace(/\d{4}$/, "")} p. ${p}`;
+    const aba = el("button", { type: "button", class: `aba${naoLida ? " nao-lida" : ""}`, title: naoLida ? "O agente não leu esta página" : `Abrir ${a}, página ${p}`,
+      ...(naoLida ? { "aria-label": `${rotulo}, página não lida pelo agente` } : {}) }, rotulo);
     aba.addEventListener("click", () => abrirFonte(a, p, { numeros, termos: rodada.termos }, aba));
     li.append(" ", aba);
   }
@@ -385,7 +390,7 @@ async function abrirHistorico(id) {
   h.append(voltar, r);
   h.scrollTop = 0;
   const primeira = lista.querySelector(".aba:not(.nao-lida)");
-  if (primeira && window.matchMedia("(min-width: 961px)").matches) primeira.click();
+  if (primeira && telaLarga()) primeira.click();
 }
 
 // ---------------- página-fonte ----------------
@@ -527,8 +532,8 @@ function grifarPdf(camada, destaque) {
 
 function alternarModo(modo) {
   fonte.modo = modo;
-  $("#ver-texto").setAttribute("aria-selected", String(modo === "texto"));
-  $("#ver-pdf").setAttribute("aria-selected", String(modo === "pdf"));
+  $("#ver-texto").setAttribute("aria-pressed", String(modo === "texto"));
+  $("#ver-pdf").setAttribute("aria-pressed", String(modo === "pdf"));
   guardar("mesa.fonte", modo);
   $("#fonte-texto").hidden = modo !== "texto";
   $("#fonte-pdfjs").hidden = modo !== "pdf";
@@ -549,6 +554,7 @@ function lembrar(chave) { try { return localStorage.getItem(chave); } catch { re
 function trocarModo(modo) {
   for (const m of ["perguntar", "historico", "revisar"]) {
     $(`#aba-${m}`).setAttribute("aria-selected", String(m === modo));
+    $(`#aba-${m}`).tabIndex = m === modo ? 0 : -1;
   }
   $("#painel-perguntar").hidden = modo !== "perguntar";
   $("#painel-historico").hidden = modo !== "historico";
@@ -696,7 +702,11 @@ function textoComAbas(texto) {
 
 function desenharCartao() {
   const c = $("#rev-cartao");
+  // Redesenhar apaga o botão em foco; o foco volta ao cartão para os atalhos continuarem valendo
+  const ae = document.activeElement;
+  const manterFoco = c.contains(ae) || !ae || ae === document.body;
   c.innerHTML = "";
+  if (manterFoco && !$("#painel-revisao").hidden) c.focus({ preventScroll: true });
   if (!rev.ordem.length) {
     c.append(el("p", { class: "rev-vazio" }, "Nenhum item neste filtro."));
     return;
@@ -753,7 +763,7 @@ function desenharCartao() {
     "aria-label": "Correção ou comentário" });
   nota.value = r.comentario || (gab ? it.comentario_planilha || "" : "");
   nota.addEventListener("change", () => salvarRevisao(it.id, statusDe(it), nota.value, false));
-  const gravado = el("p", { class: "rev-gravado", id: "rev-gravado" }, r.quando ? `Gravado em ${r.quando}` : "");
+  const gravado = el("p", { class: "rev-gravado", id: "rev-gravado", role: "status" }, r.quando ? `Gravado em ${r.quando}` : "");
 
   const ant = el("button", { type: "button", class: "botao-secundario", onclick: () => irPara(rev.pos - 1) }, "‹ Anterior");
   const prox = el("button", { type: "button", class: "botao-secundario", onclick: () => irPara(rev.pos + 1) }, "Próximo ›");
@@ -763,13 +773,13 @@ function desenharCartao() {
     el("button", { type: "button", class: "botao-texto", onclick: proximaPendente }, "Próximo pendente"));
 
   c.append(grupo, nota, gravado, nav,
-    el("p", { class: "rev-dica" }, `Atalhos: ${rev.dados.opcoes.map((o, k) => `${k + 1} ${o}`).join(" · ")} · ← → navegam. Grava em ${rev.dados.arquivo}.`));
+    el("p", { class: "rev-dica" }, `Atalhos, com o foco no cartão (clique nele ou use Tab): ${rev.dados.opcoes.map((o, k) => `${k + 1} ${o}`).join(" · ")} · ← → navegam. Grava em ${rev.dados.arquivo}.`));
   c.scrollTop = 0;
 
   // Abre a página da fonte para a conferência começar sem clique (em tela larga; no celular
   // a página vira gaveta e cobriria o cartão)
   const primeira = c.querySelector(".rev-paginas .aba") || c.querySelector(".esperado .aba") || c.querySelector(".aba");
-  if (!window.matchMedia("(min-width: 961px)").matches) return;
+  if (!telaLarga()) return;
   if (primeira) primeira.click();
   else fecharFonte(); // sem página para conferir: não deixa aberta a página do item anterior
 }
@@ -806,6 +816,7 @@ async function salvarRevisao(id, status, comentario, redesenhar) {
 
 function teclasRevisao(e) {
   if ($("#painel-revisao").hidden || !rev.dados) return;
+  if (!(e.target instanceof Element) || !e.target.closest("#rev-cartao")) return;
   if (e.target.closest("textarea, input, select") || e.ctrlKey || e.metaKey || e.altKey) return;
   const n = Number(e.key);
   if (n >= 1 && n <= rev.dados.opcoes.length) {
@@ -817,7 +828,11 @@ function teclasRevisao(e) {
   else if (e.key === "ArrowLeft") { e.preventDefault(); irPara(rev.pos - 1); }
 }
 
+function telaLarga() { return window.matchMedia("(min-width: 961px)").matches; }
+
 function fecharFonte() {
+  const ativa = document.querySelector(".aba.ativa");
+  if ($("#fonte").contains(document.activeElement) && ativa) ativa.focus();
   $("#fonte-cheia").hidden = true;
   $("#fonte-vazia").hidden = false;
   $("#fonte").classList.remove("aberta");
@@ -845,7 +860,8 @@ function iniciar() {
   $("#form").addEventListener("submit", (e) => {
     e.preventDefault();
     const t = ta.value;
-    if (!t.trim() || ocupado) return;
+    if (ocupado) return;
+    if (!t.trim()) { aviso("Escreva uma pergunta."); ta.focus(); return; }
     ta.value = "";
     ajustar();
     perguntar(t);
@@ -879,6 +895,24 @@ function iniciar() {
   $("#rev-filtro").addEventListener("change", () => { aplicarFiltro(); desenharRevisao(); });
   $("#rev-artigo").addEventListener("change", () => { aplicarFiltro(); desenharRevisao(); });
   document.addEventListener("keydown", teclasRevisao);
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || $("#fonte-cheia").hidden || e.target.closest?.("select")) return;
+    fecharFonte();
+  });
+  // Setas, Home e End entre as abas Perguntar / Histórico / Revisar (padrão ARIA de abas)
+  $(".modos").addEventListener("keydown", (e) => {
+    const abas = [...document.querySelectorAll(".modos [role=tab]")];
+    const k = abas.indexOf(document.activeElement);
+    if (k < 0) return;
+    const alvo = { ArrowRight: k + 1, ArrowLeft: k - 1, Home: 0, End: abas.length - 1 }[e.key];
+    if (alvo === undefined) return;
+    e.preventDefault();
+    const aba = abas[(alvo + abas.length) % abas.length];
+    aba.focus();
+    aba.click();
+  });
+  $("#aviso").addEventListener("mouseenter", () => clearTimeout(avisoTimer));
+  $("#aviso").addEventListener("mouseleave", esconderAvisoDepois);
   alternarModo(lembrar("mesa.fonte") === "texto" ? "texto" : "pdf");
   carregarEstado()
     .then(() => { const m = lembrar("mesa.modo"); if (m === "revisar" || m === "historico") trocarModo(m); })

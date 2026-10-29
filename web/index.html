@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="/estilo.css">
 </head>
 <body>
+  <a class="pular" href="#conteudo">Pular para o conteúdo</a>
   <header class="barra">
     <div class="marca">
       <h1>Mesa de revisão</h1>
@@ -18,8 +19,8 @@
     </div>
     <nav class="modos" role="tablist" aria-label="Modo da mesa">
       <button type="button" role="tab" id="aba-perguntar" aria-selected="true" aria-controls="painel-perguntar">Perguntar</button>
-      <button type="button" role="tab" id="aba-historico" aria-selected="false" aria-controls="painel-historico">Histórico</button>
-      <button type="button" role="tab" id="aba-revisar" aria-selected="false" aria-controls="painel-revisao">Revisar</button>
+      <button type="button" role="tab" id="aba-historico" aria-selected="false" tabindex="-1" aria-controls="painel-historico">Histórico</button>
+      <button type="button" role="tab" id="aba-revisar" aria-selected="false" tabindex="-1" aria-controls="painel-revisao">Revisar</button>
     </nav>
     <div class="controles" id="controles-pergunta">
       <label class="seletor">
@@ -30,7 +31,7 @@
     </div>
   </header>
 
-  <main class="mesa">
+  <main class="mesa" id="conteudo" tabindex="-1">
     <section class="folha" id="painel-perguntar" role="tabpanel" aria-labelledby="aba-perguntar">
       <div id="conversa" class="conversa" aria-live="polite">
         <div id="vazio" class="vazio">
@@ -70,7 +71,8 @@
         </label>
         <div class="rev-progresso" id="rev-progresso" aria-live="polite"></div>
       </div>
-      <div class="rev-cartao" id="rev-cartao"></div>
+      <div class="rev-cartao" id="rev-cartao" tabindex="0" aria-label="Item em revisão (atalhos 1, 2, 3 e setas valem com o foco aqui)"
+           aria-keyshortcuts="1 2 3 ArrowLeft ArrowRight"></div>
     </section>
 
     <aside class="fonte" id="fonte" aria-label="Página citada">
@@ -90,14 +92,14 @@
           <span id="pag-rotulo" aria-live="polite"></span>
           <button type="button" id="pag-prox" aria-label="Próxima página">›</button>
           <a id="pdf-externo" class="pdf-externo" target="_blank" rel="noopener" title="Abrir o PDF inteiro numa aba nova">PDF completo ↗</a>
-          <div class="alternar" role="tablist" aria-label="Formato da página">
-            <button type="button" role="tab" id="ver-texto" aria-selected="true">Texto</button>
-            <button type="button" role="tab" id="ver-pdf" aria-selected="false">PDF</button>
+          <div class="alternar" role="group" aria-label="Formato da página">
+            <button type="button" id="ver-texto" aria-pressed="true">Texto</button>
+            <button type="button" id="ver-pdf" aria-pressed="false">PDF</button>
           </div>
         </div>
         <div class="fonte-corpo">
-          <article id="fonte-texto" class="fonte-texto"></article>
-          <div id="fonte-pdfjs" class="fonte-pdfjs" hidden aria-label="Página do PDF com os números grifados"></div>
+          <article id="fonte-texto" class="fonte-texto" lang="en" tabindex="0" aria-label="Texto da página citada"></article>
+          <div id="fonte-pdfjs" class="fonte-pdfjs" hidden lang="en" tabindex="0" role="region" aria-label="Página do PDF com os números grifados"></div>
           <iframe id="fonte-pdf" class="fonte-pdf" title="PDF do artigo" hidden></iframe>
         </div>
       </div>

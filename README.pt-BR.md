@@ -80,7 +80,7 @@ Na interface, a aba **Revisar** mostra um item por vez, com a página da fonte a
   afirmação. Grava em `resultados/revisao_sentido_<rodada>.csv`.
 
 
-Teclas 1, 2 e 3 decidem; as setas navegam. Cada decisão vai para um CSV (id, decisão, comentário); o horário fica só no seu computador, em `logs/`. Para anexar ao
+Com o foco no cartão (clique nele ou chegue com Tab), as teclas 1, 2 e 3 decidem e as setas navegam. Cada decisão vai para um CSV (id, decisão, comentário); o horário fica só no seu computador, em `logs/`. Para anexar ao
 artigo, `python revisar_negativas.py` exporta a revisão das negativas para planilha.
 
 Se a cota do dia acabar, rode o mesmo comando no dia seguinte: ele continua de onde parou.
@@ -102,7 +102,8 @@ python -m pip_audit -r requirements.txt
 O GitHub Actions (`.github/workflows/testes.yml`) roda os três a cada envio. Os testes não
 precisam do corpus nem de chaves. Os de interface (`tests/ui`, Playwright) montam uma cópia do projeto
 com PDFs sintéticos numa pasta temporária e sobem o servidor na porta 8790+, então não mexem nos seus
-arquivos nem na interface aberta.
+arquivos nem na interface aberta. `tests/ui/test_acessibilidade.py` passa o axe-core (WCAG 2.1 AA, temas claro
+e escuro) nas três abas e confere teclado e foco: atalhos, Esc, setas nas abas, tela de 320 px.
 
 ## Reprodutibilidade
 

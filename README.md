@@ -90,7 +90,8 @@ ruff check .
 ```
 
 GitHub Actions runs tests, lint and `pip-audit` on every push. The UI tests (`tests/ui`, Playwright) run the
-server on a temporary copy of the project with synthetic PDFs, so they never touch real files. Project rules for coding agents are in
+server on a temporary copy of the project with synthetic PDFs, so they never touch real files. `tests/ui/test_acessibilidade.py` runs axe-core (WCAG 2.1 AA, light and dark)
+on every tab and checks keyboard and focus behaviour. Project rules for coding agents are in
 `AGENTS.md`.
 
 ## Security

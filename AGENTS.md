@@ -116,6 +116,7 @@ python main.py       (terminal)
 | 26/10 | Provedor travado prendia a interface por até 10 min | Tempo limite de 120 s por chamada | `agente/harness.py` |
 | 26/10 | CSVs de revisão publicavam o horário de cada decisão da autora | Horário só em `logs/revisao_horarios.jsonl`; histórico do git reescrito sem horários (envio forçado autorizado pela autora) | `revisao.py`, teste em `tests/test_revisao.py` |
 | 28/10 | No Windows, dois servidores abriam a mesma porta (SO_REUSEADDR do Python): pedidos de teste podiam cair na interface de verdade | `SO_EXCLUSIVEADDRUSE` no Windows; testes de interface em porta própria (8790+) | `app.py` (`ServidorLocal`), `tests/ui/conftest.py` |
+| 29/10 | Auditoria WCAG 2.1 AA achou 18 problemas: página do PDF sem acesso por teclado, bordas de campo com 1,3:1, atalhos 1/2/3 valendo na página toda, foco invisível na caixa de pergunta, 320 px com rolagem lateral | Correções em `web/`; atalhos só com foco no cartão; Esc fecha a página; setas nas abas. Toda mudança de tela passa no axe sem violação | `web/`, `tests/ui/test_acessibilidade.py` |
 
 ## Quando uma falha se repetir
 
