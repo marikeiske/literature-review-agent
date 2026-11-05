@@ -44,9 +44,17 @@ DEFINICOES = [
 ]
 
 
+# Lista permitida (Aula 12, slide 17): o harness só executa o que está aqui. Qualquer outro nome,
+# inclusive um que exista como método da classe, recebe erro de permissão e não executa.
+PERMITIDAS = frozenset(d["function"]["name"] for d in DEFINICOES)
+# Começos das saídas que o harness trata como erro (slide 18: o erro vira estado, não frase)
+PERMISSAO_NEGADA = "Permissão negada"
+ERRO = "Erro"
+
+
 class Ferramentas:
-    def __init__(self):
-        dados = carregar()
+    def __init__(self, dados: dict | None = None):
+        dados = dados if dados is not None else carregar()
         self.artigos = dados["artigos"]
         self.paginas = {(p["artigo"], p["pagina"]): p["texto"] for p in dados["paginas"]}
         self.indice = IndiceBM25(dados["paginas"])
@@ -56,17 +64,21 @@ class Ferramentas:
         self.evidencias = {}
 
     def executar(self, nome: str, argumentos: str) -> str:
+        if nome not in PERMITIDAS:
+            return (f"{PERMISSAO_NEGADA}: a ferramenta '{nome}' não está na lista permitida "
+                    f"({', '.join(sorted(PERMITIDAS))}). Nada foi executado.")
         try:
             args = json.loads(argumentos or "{}")
         except json.JSONDecodeError:
-            return "Erro: argumentos não são JSON válido."
-        metodo = getattr(self, f"_{nome}", None)
-        if metodo is None:
-            return f"Tool desconhecida: {nome}"
+            return f"{ERRO}: argumentos não são JSON válido."
+        if not isinstance(args, dict):
+            return f"{ERRO}: os argumentos de {nome} precisam ser um objeto JSON."
         try:
-            return metodo(**args)
+            return getattr(self, f"_{nome}")(**args)
         except TypeError as e:
-            return f"Erro nos argumentos de {nome}: {e}"
+            return f"{ERRO} nos argumentos de {nome}: {e}"
+        except Exception as e:  # falha da ferramenta vira estado do próximo passo, não derruba o turno
+            return f"{ERRO} ao executar {nome}: {type(e).__name__}: {e}"
 
     def _listar_artigos(self) -> str:
         linhas = [f'{a["id"]} | {a["autores"]} ({a["ano"]}) | {a["titulo"]} | {a.get("n_paginas", "?")} p.'

@@ -4,7 +4,9 @@ Tradução para Python da demo da disciplina (material-alunos.zip,
 harness-demo/steps/17-agentic-loop.ts): chama o LLM, executa as tools pedidas,
 devolve o resultado e repete até o modelo responder sem tools, com limite de
 ciclos. Acrescenta o que a Aula 10 pede: verificação de citação, gate humano
-antes de gravar e registro de prompt, saída e decisão.
+antes de gravar e registro de prompt, saída e decisão. A Aula 12 acrescenta a lista
+permitida de tools (tools.PERMITIDAS), o ramo de erro (nada lido = falha tratada, sem frase e
+sem humano) e o motivo de parada no trace (parada.py).
 """
 import json
 import re
@@ -13,10 +15,10 @@ from datetime import datetime
 
 from openai import OpenAI
 
-from . import hitl, verificador
+from . import hitl, parada, verificador
 from .config import MAX_CICLOS, MAX_TOOLS, PASTA_LOGS, PASTA_SKILLS, PROVEDOR_PADRAO, PROVEDORES
 from .corpus import ARTIGOS
-from .tools import DEFINICOES, Ferramentas
+from .tools import DEFINICOES, ERRO, PERMISSAO_NEGADA, Ferramentas
 
 
 def _skills_nivel1() -> str:
@@ -81,11 +83,15 @@ a citação [Id p.N]. Sem introdução longa.
 
 
 class Agente:
-    def __init__(self):
-        self.ferramentas = Ferramentas()
+    def __init__(self, ferramentas: Ferramentas | None = None, cliente=None):
+        """ferramentas e cliente só são passados nos testes (corpus sintético e modelo falso)."""
+        self.ferramentas = ferramentas or Ferramentas()
         self.provedor = PROVEDOR_PADRAO
         self.modelo = PROVEDORES[self.provedor]["modelo_padrao"]
-        self.cliente = self._criar_cliente(self.provedor)
+        self.cliente = cliente or self._criar_cliente(self.provedor)
+        # Como o último turno terminou, do ponto de vista do harness (ver _responder)
+        self.motivo_harness = "resposta"
+        self.estatisticas_turno: dict = {}
         self.mensagens = self._contexto_inicial()
         self.ultimo_log = None
         self.chamadas_sessao = 0
@@ -179,33 +185,53 @@ class Agente:
         return re.sub(r"<think>.*?</think>", "", texto or "", flags=re.S).strip()
 
     # ---------- um turno ----------
-    def responder(self, pergunta: str) -> tuple[str, int]:
+    def responder(self, pergunta: str, correcao: bool = False) -> tuple[str, int]:
         """Roda o loop agêntico até a resposta final. Devolve (resposta, chamadas no turno).
+
+        correcao=True: o turno revisa a resposta anterior a pedido da pessoa. As páginas já lidas
+        continuam valendo como evidência; sem isso, reescrever sem buscar de novo viraria
+        "página não lida" (e, sem nenhuma página, falha tratada).
 
         Se a chamada falhar no meio (limite de requisições, rede), o histórico volta ao
         estado de antes da pergunta: restos de um turno sem resposta contaminam o próximo.
         """
         tamanho_antes = len(self.mensagens)
         try:
-            return self._responder(pergunta)
+            return self._responder(pergunta, correcao)
         except Exception as e:
             del self.mensagens[tamanho_antes:]
             self._registrar({"tipo": "erro", "erro": f"{type(e).__name__}: {str(e)[:300]}",
                              "historico_desfeito": True})
             raise
 
-    def _responder(self, pergunta: str) -> tuple[str, int]:
-        self.ferramentas.novo_turno()
+    def _responder(self, pergunta: str, correcao: bool = False) -> tuple[str, int]:
+        """Loop agêntico (Aula 12, slide 7): ler o estado, escolher a ação, observar, parar ou voltar.
+
+        Devolve o texto CRU do modelo, como antes de 05/11: a avaliação (avaliar.py) continua
+        pontuando a mesma coisa. Quem decide o que a pessoa vê é parada.classificar, no gate."""
+        if not correcao:
+            self.ferramentas.novo_turno()
+        self.motivo_harness = "resposta"
+        self.estatisticas_turno = {"buscas": 0, "trava": False, "permissao_negada": 0, "erros_tool": 0}
         self.mensagens.append({"role": "user", "content": pergunta})
         self._registrar({"tipo": "pergunta", "texto": pergunta})
         n_tools = 0
         for ciclo in range(1, MAX_CICLOS + 1):
             # Trava do harness: esgotado o orçamento de tools, o modelo tem de responder com o que leu
             esgotou = n_tools >= MAX_TOOLS
+            if esgotou and not self.ferramentas.evidencias:
+                # Ramo de erro (slide 23): todas as buscas voltaram vazias ou com erro. Pedir a
+                # resposta agora só daria ao modelo a chance de redigir sem trecho. Para aqui.
+                self.motivo_harness = "falha"
+                self._registrar({"tipo": "ramo_de_erro", "motivo": f"{n_tools} chamadas de tool sem nenhuma página lida"})
+                self._avisar({"tipo": "ramo_de_erro"})
+                self.mensagens.append({"role": "assistant", "content": parada.TEXTO_FALHA})
+                return parada.TEXTO_FALHA, ciclo - 1
             if esgotou:
                 self.mensagens.append({"role": "user", "content": (
                     "Limite de buscas atingido. Responda agora só com o que você já leu, no formato pedido. "
                     'Se não encontrou, escreva "Não consta no material aberto."')})
+                self.estatisticas_turno["trava"] = True
                 self._registrar({"tipo": "trava", "motivo": f"{n_tools} chamadas de tool"})
                 self._avisar({"tipo": "trava", "n_tools": n_tools})
             self._avisar({"tipo": "pensando", "ciclo": ciclo})
@@ -221,6 +247,7 @@ class Agente:
                 # Listar artigos e carregar Skill são baratos: só busca e leitura gastam o orçamento
                 if c.function.name in ("buscar_trechos", "ler_pagina"):
                     n_tools += 1
+                    self.estatisticas_turno["buscas"] += 1
                 print(f"  → {c.function.name}({c.function.arguments})")
                 try:
                     args_tool = json.loads(c.function.arguments or "{}")
@@ -228,33 +255,65 @@ class Agente:
                     args_tool = {}
                 self._avisar({"tipo": "tool", "nome": c.function.name, "argumentos": args_tool})
                 saida = self.ferramentas.executar(c.function.name, c.function.arguments)
+                if saida.startswith(PERMISSAO_NEGADA):
+                    # Fora da lista (slide 17): não executou; o pedido fica no trace
+                    self.estatisticas_turno["permissao_negada"] += 1
+                    self._registrar({"tipo": "permissao_negada", "nome": c.function.name,
+                                     "argumentos": c.function.arguments})
+                    self._avisar({"tipo": "permissao_negada", "nome": c.function.name})
+                elif saida.startswith(ERRO):
+                    self.estatisticas_turno["erros_tool"] += 1
                 self._registrar({"tipo": "tool", "nome": c.function.name,
                                  "argumentos": c.function.arguments, "saida": saida[:2000]})
                 self.mensagens.append({"role": "tool", "tool_call_id": c.id, "content": saida})
-        aviso = f"Limite de {MAX_CICLOS} ciclos atingido sem resposta final."
-        self.mensagens.append({"role": "assistant", "content": aviso})
-        return aviso, MAX_CICLOS
+        self.motivo_harness = "limite"
+        self.mensagens.append({"role": "assistant", "content": parada.TEXTO_LIMITE})
+        return parada.TEXTO_LIMITE, MAX_CICLOS
+
+    # ---------- parada (Aula 12, slide 28) ----------
+    def fechar_turno(self, resposta: str) -> dict:
+        """Verifica a resposta, decide a parada e registra as duas coisas no trace.
+
+        Devolve {"parada", "itens", "texto", "evidencias"}. "texto" é o que a pessoa vê: na falha
+        tratada e no limite, o rascunho fica só no log e não vai para a tela nem para o fichamento."""
+        evid = dict(self.ferramentas.evidencias)
+        itens = verificador.verificar(resposta, evid)
+        motivo = parada.classificar(itens, evid, self.motivo_harness)
+        texto = parada.texto_para_mostrar(motivo, resposta)
+        if texto != resposta:
+            itens = verificador.verificar(texto, evid)
+        self.registrar_parada(motivo, paginas_lidas=sorted([a, p] for (a, p) in evid), **self.estatisticas_turno)
+        return {"parada": motivo, "itens": itens, "texto": texto, "evidencias": evid}
+
+    def registrar_parada(self, motivo: str, **detalhes):
+        self._registrar({"tipo": "parada", "motivo": motivo, **detalhes})
+        self._avisar({"tipo": "parada", "motivo": motivo})
 
     # ---------- turno com verificação e gate humano ----------
     def turno_com_revisao(self, pergunta: str):
-        texto_pergunta = pergunta
+        texto_pergunta, correcao = pergunta, False
         while True:
-            resposta, chamadas = self.responder(texto_pergunta)
+            resposta, chamadas = self.responder(texto_pergunta, correcao=correcao)
+            fim = self.fechar_turno(resposta)
+            resposta, itens = fim["texto"], fim["itens"]
             print(f"\n{resposta}\n")
-            print(f"[{chamadas} chamada(s) ao LLM neste turno · {self.chamadas_sessao} na sessão]")
-            itens = verificador.verificar(resposta, self.ferramentas.evidencias)
+            print(f"[{chamadas} chamada(s) ao LLM neste turno · {self.chamadas_sessao} na sessão · parada: {fim['parada']}]")
             self._registrar({"tipo": "verificacao", "resumo": verificador.resumo(itens), "itens": itens,
                              "chamadas_turno": chamadas})
-            if not itens:
+            if fim["parada"] in parada.SEM_HUMANO or not itens:
+                # Recusa, falha tratada ou limite: não há citação pendente, o humano não é chamado
                 return
             hitl.mostrar_verificacao(itens)
             decisao, comentario = hitl.pedir_decisao()
             self._registrar({"tipo": "decisao_humana", "decisao": decisao, "comentario": comentario})
             if decisao == "aprovar":
                 arquivo = hitl.gravar_fichamento(pergunta, resposta, itens, self.rotulo, comentario)
+                self.registrar_parada(parada.CUMPRIDO)
                 print(f"Gravado em {arquivo}")
                 return
             if decisao == "rejeitar":
+                self.registrar_parada(parada.REJEITADA)
                 print("Descartado. A decisão ficou no log.")
                 return
             texto_pergunta = f"Revise a resposta anterior. Correção pedida pela pessoa: {comentario}"
+            correcao = True

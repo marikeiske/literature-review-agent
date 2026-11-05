@@ -32,7 +32,7 @@ from urllib.parse import parse_qs, urlparse
 
 import revisao
 import seguranca
-from agente import hitl, verificador
+from agente import hitl, parada, verificador
 from agente.config import PASTA_CORPUS, PASTA_LOGS, PROVEDORES, RAIZ
 from agente.corpus import ARTIGOS_POR_ID
 from agente.harness import Agente
@@ -143,6 +143,7 @@ def _entradas_do_log(arquivo: Path) -> list[dict]:
                     atual["lidas"] = {(a, int(pg)) for a, pg in ev["lidas"]}
                 atual["itens_log"] = ev.get("itens") or []
                 atual.update({"resumo": ev.get("resumo", ""), "decisao": "", "comentario": "",
+                              "parada": ev.get("parada", ""),
                               "id": f"{arquivo.stem}#{len(entradas)}"})
                 entradas.append(atual)
                 atual = None
@@ -157,7 +158,7 @@ def historico() -> list[dict]:
             correcao = e["pergunta"].startswith(CORRECAO)
             saida.append({"id": e["id"], "quando": e["quando"], "modelo": e["modelo"], "resumo": e["resumo"],
                           "pergunta": e["pergunta"].removeprefix(CORRECAO).strip() if correcao else e["pergunta"],
-                          "correcao": correcao, "decisao": e["decisao"]})
+                          "correcao": correcao, "decisao": e["decisao"], "parada": e.get("parada", "")})
     return saida
 
 
@@ -192,10 +193,10 @@ def item_historico(id_: str) -> dict:
             "resultado": {"resposta": e["resposta"], "itens": itens, "linhas": linhas,
                           "chamadas": e["chamadas"], "segundos": round(e["segundos"], 1), "tokens": e["tokens"],
                           "modelo": e["modelo"], "lidas": sorted([a, pg] for (a, pg) in evid),
-                          "resumo": e["resumo"]}}
+                          "resumo": e["resumo"], "parada": e.get("parada", "")}}
 
 
-def rodar_job(job_id: str, texto: str):
+def rodar_job(job_id: str, texto: str, correcao: bool = False):
     job = jobs[job_id]
 
     def ouvir(evento):
@@ -205,13 +206,15 @@ def rodar_job(job_id: str, texto: str):
     with trava_agente:
         agente.ouvinte = ouvir
         try:
-            resposta, chamadas = agente.responder(texto)
-            evid = dict(agente.ferramentas.evidencias)
-            itens = verificador.verificar(resposta, evid)
+            resposta, chamadas = agente.responder(texto, correcao=correcao)
+            # Parada (Aula 12, slide 28): na falha tratada e no limite o rascunho fica só no log
+            fim = agente.fechar_turno(resposta)
+            resposta, itens, evid = fim["texto"], fim["itens"], fim["evidencias"]
             agente._registrar({"tipo": "verificacao", "resumo": verificador.resumo(itens), "itens": itens,
-                               "chamadas_turno": chamadas, "origem": "interface",
+                               "chamadas_turno": chamadas, "origem": "interface", "parada": fim["parada"],
                                "lidas": sorted([a, p] for (a, p) in evid)})
             job["resultado"] = {
+                "parada": fim["parada"], "precisa_decisao": fim["parada"] not in parada.SEM_HUMANO,
                 "resposta": resposta, "itens": itens, "linhas": linhas_verificadas(resposta, evid),
                 "chamadas": chamadas, "segundos": round(time.time() - job["inicio"], 1),
                 "tokens": agente.tokens_contexto, "modelo": agente.rotulo,
@@ -224,11 +227,11 @@ def rodar_job(job_id: str, texto: str):
             agente.ouvinte = None
 
 
-def novo_job(texto: str, pergunta_original: str) -> str:
+def novo_job(texto: str, pergunta_original: str, correcao: bool = False) -> str:
     job_id = uuid.uuid4().hex[:10]
     jobs[job_id] = {"estado": "rodando", "eventos": [], "inicio": time.time(), "pergunta": pergunta_original,
                     "resultado": None, "erro": None, "decidido": False}
-    threading.Thread(target=rodar_job, args=(job_id, texto), daemon=True).start()
+    threading.Thread(target=rodar_job, args=(job_id, texto, correcao), daemon=True).start()
     return job_id
 
 
@@ -402,6 +405,9 @@ class Manipulador(BaseHTTPRequestHandler):
                 return self._json({"erro": "Não há resposta pronta para decidir."}, 400)
             if job["decidido"]:
                 return self._json({"erro": "Essa resposta já foi decidida."}, 409)
+            if not job["resultado"].get("precisa_decisao", True):
+                # Recusa, falha tratada ou limite: não há citação para aprovar (Aula 12, slides 23 e 24)
+                return self._json({"erro": f"Nada a decidir: o ciclo parou em {job['resultado']['parada']}."}, 409)
             decisao, comentario = dados.get("decisao"), (dados.get("comentario") or "").strip()
             if decisao not in ("aprovar", "corrigir", "rejeitar"):
                 return self._json({"erro": "Decisão inválida."}, 400)
@@ -413,13 +419,15 @@ class Manipulador(BaseHTTPRequestHandler):
             r = job["resultado"]
             if decisao == "aprovar":
                 arquivo = hitl.gravar_fichamento(job["pergunta"], r["resposta"], r["itens"], r["modelo"], comentario)
+                agente.registrar_parada(parada.CUMPRIDO, origem="interface")
                 return self._json({"ok": True, "arquivo": str(arquivo)})
             if decisao == "rejeitar":
+                agente.registrar_parada(parada.REJEITADA, origem="interface")
                 return self._json({"ok": True})
             if trava_agente.locked():
                 return self._json({"erro": "O agente ainda está ocupado."}, 409)
             texto = f"Revise a resposta anterior. Correção pedida pela pessoa: {comentario}"
-            return self._json({"ok": True, "job": novo_job(texto, job["pergunta"])})
+            return self._json({"ok": True, "job": novo_job(texto, job["pergunta"], correcao=True)})
         if url.path == "/api/modelo":
             try:
                 msg = agente.trocar_modelo((dados.get("alvo") or "").strip())

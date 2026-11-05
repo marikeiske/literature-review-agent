@@ -167,6 +167,7 @@ select {
 .trilha li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--linha); flex: none; transform: translateY(-1px); }
 .trilha li.agora::before { background: var(--marca-texto); animation: pulsar 1.1s ease-in-out infinite; }
 .trilha li.trava { color: var(--duvida); }
+.trilha li.parada, .decidido.parada { color: var(--tinta-suave); }
 .trilha q { font-style: italic; color: var(--tinta); quotes: "“" "”"; }
 @keyframes pulsar { 50% { transform: translateY(-1px) scale(1.7); } }
 

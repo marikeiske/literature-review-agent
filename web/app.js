@@ -185,6 +185,12 @@ function mostrarEvento(rodada, ev) {
     li = el("li", { class: "agora" }, ev.ciclo === 1 ? "Lendo a pergunta" : "Pensando no que leu");
   } else if (ev.tipo === "trava") {
     li = el("li", { class: "trava" }, "Limite de buscas atingido: respondendo com o que já leu");
+  } else if (ev.tipo === "ramo_de_erro") {
+    li = el("li", { class: "trava" }, "Nenhuma busca trouxe página: o ciclo para sem redigir");
+  } else if (ev.tipo === "permissao_negada") {
+    li = el("li", { class: "trava" }, `Ferramenta fora da lista permitida (${ev.nome}): não executada`);
+  } else if (ev.tipo === "parada") {
+    li = el("li", { class: "parada" }, `Parada: ${ev.motivo}`);
   } else if (ev.tipo === "tool") {
     const a = ev.argumentos || {};
     if (ev.nome === "buscar_trechos") {
@@ -228,7 +234,8 @@ function mostrarResposta(rodada, job, r) {
     el("p", { class: "leitura", title: "O verificador confere se a página foi lida e se os números estão nela; se o trecho sustenta a frase, quem decide é você." },
       resumoLeitura(r, n("rastreável"), comPagina)),
     el("p", { class: "medidas" }, `${r.modelo.split(":").slice(1).join(":")} · ${pedidos} · ${r.segundos} s · ${r.tokens.toLocaleString("pt-BR")} tokens`));
-  rod.append(barraDecisao(job, rodada));
+  // Recusa, falha tratada e limite não têm citação para aprovar: o humano não é chamado (Aula 12, slides 23 e 24)
+  rod.append(r.precisa_decisao === false ? avisoParada(r.parada) : barraDecisao(job, rodada));
   rodada.append(rod);
   rodada.scrollIntoView({ behavior: "smooth", block: "end" });
   // Abre logo a primeira página citada que o agente leu, para a conferência começar sem clique
@@ -268,6 +275,16 @@ function linhaResposta(linha, rodada) {
     li.append(" ", aba);
   }
   return li;
+}
+
+const PARADAS = {
+  "recusa": "Parada: recusa. O material lido não sustenta a resposta; não há citação para aprovar.",
+  "falha tratada": "Parada: falha tratada. Nenhuma página foi lida, então nenhuma afirmação foi entregue. O rascunho, se houve, ficou só no log.",
+  "limite": "Parada: limite de ciclos. O agente não chegou a uma resposta; nada foi entregue.",
+};
+
+function avisoParada(motivo) {
+  return el("div", { class: "decisao" }, el("p", { class: "decidido parada" }, PARADAS[motivo] || `Parada: ${motivo}.`));
 }
 
 function barraDecisao(job, rodada) {
