@@ -99,42 +99,46 @@ def binario_humano(revs: dict, ids) -> tuple[int, int]:
 
 
 def caminho_dos_logs(pasta=None) -> dict | None:
-    """Métrica de caminho (Aula 12, slide 38), lida dos logs locais: buscas por pergunta, quantas
-    vezes a trava de tools disparou, ramos de erro e pedidos fora da lista permitida.
-    Os logs ficam só na máquina da autora (logs/ está no .gitignore); sem eles, devolve None."""
+    """Métrica de caminho (Aula 12, slide 38), lida dos logs locais.
+
+    Conta só as perguntas que chegaram a uma resposta do modelo: pergunta com erro do provedor
+    (cota, rede) ou sem chamada ao LLM fica de fora e é contada à parte. Para as que ficam:
+    buscas e leituras por pergunta, quantas acionaram a trava de tools, quantas foram respondidas
+    sem nenhuma busca (a partir de 05/11 elas param como falha tratada), ramos de erro e pedidos
+    fora da lista permitida. Os logs ficam só na máquina da autora (logs/ está no .gitignore);
+    sem eles, devolve None."""
     pasta = pasta or PASTA_LOGS
     arquivos = sorted(pasta.glob("sessao_*.jsonl")) if pasta.exists() else []
     if not arquivos:
         return None
-    perguntas, buscas, trava, erro, negada = 0, Counter(), 0, 0, 0
+    buscas, trava, erro, negada, sem_resposta = Counter(), 0, 0, 0, 0
     for arq in arquivos:
-        atual = None
+        blocos, atual = [], None
         with open(arq, encoding="utf-8") as f:
             for linha in f:
                 try:
                     ev = json.loads(linha)
                 except json.JSONDecodeError:
                     continue
-                tipo = ev.get("tipo")
-                if tipo == "pergunta":
-                    if atual is not None:
-                        buscas[atual] += 1
-                    perguntas, atual = perguntas + 1, 0
-                elif atual is None:
-                    continue
-                elif tipo == "tool" and ev.get("nome") in ("buscar_trechos", "ler_pagina"):
-                    atual += 1
-                elif tipo == "trava":
-                    trava += 1
-                elif tipo == "ramo_de_erro":
-                    erro += 1
-                elif tipo == "permissao_negada":
-                    negada += 1
-        if atual is not None:
-            buscas[atual] += 1
+                if ev.get("tipo") == "pergunta":
+                    atual = []
+                    blocos.append(atual)
+                elif atual is not None:
+                    atual.append(ev)
+        for bloco in blocos:
+            tipos = [e.get("tipo") for e in bloco]
+            if "erro" in tipos or "chamada_llm" not in tipos:
+                sem_resposta += 1
+                continue
+            buscas[sum(1 for e in bloco if e.get("tipo") == "tool" and e.get("nome") in ("buscar_trechos", "ler_pagina"))] += 1
+            trava += "trava" in tipos
+            erro += "ramo_de_erro" in tipos
+            negada += tipos.count("permissao_negada")
+    perguntas = sum(buscas.values())
     total = sum(k * v for k, v in buscas.items())
-    return {"perguntas": perguntas, "media_buscas": total / perguntas if perguntas else 0,
-            "distribuicao": dict(sorted(buscas.items())), "trava": trava, "ramo_de_erro": erro, "permissao_negada": negada}
+    return {"perguntas": perguntas, "sem_resposta": sem_resposta, "media_buscas": total / perguntas if perguntas else 0,
+            "distribuicao": dict(sorted(buscas.items())), "sem_busca": buscas.get(0, 0), "trava": trava,
+            "ramo_de_erro": erro, "permissao_negada": negada}
 
 
 def separar_suites(rodadas: dict, ids) -> dict:
@@ -316,8 +320,10 @@ def main():
     if cam:
         dist = ", ".join(f"{k} busca(s): {v}" for k, v in cam["distribuicao"].items())
         out += ["", "## Caminho (Aula 12, slide 38), dos logs locais", "",
-                f"- Perguntas nos logs: {cam['perguntas']}. Buscas e leituras por pergunta: média {cam['media_buscas']:.1f} ({dist}).",
-                f"- Trava de tools disparada: {cam['trava']} · ramo de erro: {cam['ramo_de_erro']} · "
+                f"- Perguntas com resposta do modelo: {cam['perguntas']} (fora: {cam['sem_resposta']} com erro do provedor "
+                f"ou sem chamada). Buscas e leituras por pergunta: média {cam['media_buscas']:.1f} ({dist}).",
+                f"- Respondidas sem nenhuma busca: {cam['sem_busca']} (desde 05/11 param como falha tratada) · "
+                f"trava de tools disparada: {cam['trava']} · ramo de erro: {cam['ramo_de_erro']} · "
                 f"pedidos fora da lista permitida: {cam['permissao_negada']}.",
                 "- Os logs incluem as rodadas de avaliação e o uso na interface. Ramo de erro e lista permitida só "
                 "entram nos logs a partir de 05/11/2026."]

@@ -34,12 +34,16 @@ def test_parcial_conta_como_falha():
 
 def test_caminho_dos_logs(tmp_path):
     import json
-    eventos = [{"tipo": "pergunta"}, {"tipo": "tool", "nome": "buscar_trechos"}, {"tipo": "tool", "nome": "listar_artigos"},
+    llm = {"tipo": "chamada_llm"}
+    eventos = [{"tipo": "pergunta"}, {"tipo": "tool", "nome": "buscar_trechos"}, {"tipo": "tool", "nome": "listar_artigos"}, llm,
                {"tipo": "pergunta"}, {"tipo": "tool", "nome": "buscar_trechos"}, {"tipo": "tool", "nome": "ler_pagina"},
-               {"tipo": "trava"}, {"tipo": "ramo_de_erro"}]
+               {"tipo": "trava"}, llm, {"tipo": "ramo_de_erro"},
+               {"tipo": "pergunta"}, llm,                          # respondeu sem buscar
+               {"tipo": "pergunta"}, {"tipo": "erro"}]            # erro do provedor: fica de fora
     (tmp_path / "sessao_x.jsonl").write_text("\n".join(json.dumps(e) for e in eventos), encoding="utf-8")
     c = r.caminho_dos_logs(tmp_path)
-    assert c["perguntas"] == 2 and c["distribuicao"] == {1: 1, 2: 1} and c["trava"] == 1 and c["ramo_de_erro"] == 1
+    assert c["perguntas"] == 3 and c["sem_resposta"] == 1 and c["sem_busca"] == 1
+    assert c["distribuicao"] == {0: 1, 1: 1, 2: 1} and c["trava"] == 1 and c["ramo_de_erro"] == 1
 
 
 def test_separar_suites():
