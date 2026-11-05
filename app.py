@@ -162,6 +162,28 @@ def historico() -> list[dict]:
     return saida
 
 
+def monitoramento() -> list[dict]:
+    """Dias do teste diário automático (teste_diario.py), do mais recente para o mais antigo.
+
+    Fica separado das perguntas: o Histórico lista só o que a autora perguntou na interface."""
+    dias = []
+    for arq in sorted((PASTA_LOGS / "monitoramento").glob("????-??-??.json"), reverse=True):
+        try:
+            r = json.loads(arq.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        afs, neg, liv = r.get("afirmacoes") or [], r.get("negativa") or {}, r.get("livre") or {}
+        testes = r.get("testes_codigo") or {}
+        dias.append({"data": str(r.get("data", "")), "dia": r.get("dia"), "ok": bool(r.get("ok")),
+                     "modelo": str(r.get("modelo", "")), "testes": str(testes.get("resumo", "")),
+                     "testes_ok": bool(testes.get("ok", True)),
+                     "acertos": sum(int(a.get("acerto_exato", 0)) for a in afs), "afirmacoes": len(afs),
+                     "negativa": str(neg.get("id", "")), "negativa_ok": bool(neg.get("acerto")),
+                     "livre_ok": bool(liv.get("ok")), "tem_livre": bool(liv),
+                     "problemas": [str(p) for p in r.get("problemas") or []]})
+    return dias
+
+
 def item_historico(id_: str) -> dict:
     if not seguranca.id_historico_valido(id_):  # nada de "../" no id
         raise ValueError("Conversa não encontrada.")
@@ -360,6 +382,8 @@ class Manipulador(BaseHTTPRequestHandler):
             return self._json({"artigo": art, "pagina": pag, "total": total, "texto": texto})
         if url.path == "/api/historico":
             return self._json({"conversas": historico()})
+        if url.path == "/api/monitoramento":
+            return self._json({"dias": monitoramento()})
         if url.path == "/api/historico/item":
             try:
                 return self._json(item_historico(q.get("id", "")))

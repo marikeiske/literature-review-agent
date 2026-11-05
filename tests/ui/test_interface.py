@@ -101,3 +101,32 @@ def test_pedido_de_outro_site_e_recusado(servidor):
         raise AssertionError("o servidor aceitou um pedido de outro site")
     except urllib.error.HTTPError as e:
         assert e.code == 403
+
+
+def test_historico_mostra_teste_diario_a_parte(servidor, pagina):
+    """O teste automático aparece num bloco próprio no Histórico, fora da lista de perguntas da autora."""
+    pasta = servidor["pasta"] / "logs" / "monitoramento"
+    pasta.mkdir(parents=True, exist_ok=True)
+    base = {"modelo": "ollama:nemotron-3-ultra:cloud", "testes_codigo": {"ok": True, "resumo": "73 passed"},
+            "negativa": {"id": "N06", "acerto": 1}, "livre": {"pergunta": "x", "ok": True}}
+    (pasta / "2026-11-05.json").write_text(json.dumps({**base, "data": "2026-11-05", "dia": 1, "ok": True, "problemas": [],
+        "afirmacoes": [{"acerto_exato": 1}] * 5}), encoding="utf-8")
+    (pasta / "2026-11-06.json").write_text(json.dumps({**base, "data": "2026-11-06", "dia": 2, "ok": False,
+        "problemas": ["só 3/5 páginas exatas"], "afirmacoes": [{"acerto_exato": 1}] * 3 + [{"acerto_exato": 0}] * 2}),
+        encoding="utf-8")
+    try:
+        pagina.click("#aba-historico")
+        bloco = pagina.locator(".teste-diario")
+        expect(bloco).to_be_visible(timeout=10000)
+        expect(bloco.locator("summary")).to_contain_text("06/11: com problema")
+        expect(bloco.locator("summary")).to_contain_text("1 de 2 dias sem problema")
+        bloco.locator("summary").click()
+        linhas = bloco.locator("tr")
+        expect(linhas).to_have_count(3)
+        expect(linhas.nth(1)).to_contain_text("só 3/5 páginas exatas")
+        expect(linhas.nth(2)).to_contain_text("5 de 5")
+        # As perguntas do teste não entram na lista de perguntas da autora
+        assert pagina.locator(".hist-lista li").count() >= 1
+    finally:
+        for arq in pasta.glob("*.json"):
+            arq.unlink()

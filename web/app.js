@@ -358,6 +358,7 @@ async function listarHistorico() {
     return h.append(el("p", { class: "erro" }, `Não consegui ler o histórico: ${e.message}`));
   }
   h.innerHTML = "";
+  await blocoTesteDiario(h);
   h.append(el("h2", { class: "hist-titulo" }, "Perguntas anteriores"),
     el("p", { class: "hist-sub" }, `${conversas.length} perguntas feitas na aba Perguntar, da mais recente para a mais antiga. Abrir uma delas só mostra; nada é enviado de novo ao modelo.`));
   if (!conversas.length) return h.append(el("p", { class: "rev-vazio" }, "Nenhuma pergunta ainda."));
@@ -374,6 +375,47 @@ async function listarHistorico() {
     lista.append(el("li", {}, b));
   }
   h.append(lista);
+}
+
+// Teste diário automático (teste_diario.py): bloco à parte, para não se misturar com as perguntas da autora
+async function blocoTesteDiario(h) {
+  let dias;
+  try {
+    ({ dias } = await api("/api/monitoramento"));
+  } catch {
+    return;
+  }
+  if (!dias.length) return;
+  const okDias = dias.filter((d) => d.ok).length;
+  const ultimo = dias[0];
+  const det = el("details", { class: "teste-diario" });
+  det.append(el("summary", {},
+    el("span", { class: "teste-titulo" }, "Teste diário automático"),
+    el("span", { class: `chip ${ultimo.ok ? "chip-ok" : "chip-erro"}` },
+      `${dataCurta(ultimo.data)}: ${ultimo.ok ? "tudo certo" : "com problema"}`),
+    el("span", { class: "teste-conta" }, `${okDias} de ${dias.length} ${dias.length === 1 ? "dia" : "dias"} sem problema`)));
+  det.append(el("p", { class: "hist-sub" },
+    "Uma vez por dia, sem ninguém no teclado: os testes do código, 5 afirmações do gabarito, 1 pergunta negativa e 1 pergunta livre, diferentes a cada dia. Essas perguntas não entram na lista abaixo."));
+  const tabela = el("table", { class: "teste-tabela" });
+  tabela.append(el("tr", {}, ...["Data", "Testes do código", "Páginas exatas", "Negativa", "Pergunta livre", "Resultado"]
+    .map((t) => el("th", { scope: "col" }, t))));
+  for (const d of dias) {
+    tabela.append(el("tr", {},
+      el("td", {}, `${dataCurta(d.data)} · dia ${d.dia}`),
+      el("td", {}, d.testes ? (d.testes_ok ? "passaram" : "falharam") : "—"),
+      el("td", {}, d.afirmacoes ? `${d.acertos} de ${d.afirmacoes}` : "—"),
+      el("td", {}, d.negativa ? `${d.negativa_ok ? "acertou" : "errou"} (${d.negativa})` : "—"),
+      el("td", {}, d.tem_livre ? (d.livre_ok ? "ok" : "falhou") : "—"),
+      el("td", {}, d.ok ? el("span", { class: "chip chip-ok" }, "OK") : el("span", { class: "teste-problema" }, d.problemas.join("; ") || "problema"))));
+  }
+  det.append(el("div", { class: "teste-rolagem" }, tabela),
+    el("p", { class: "hist-meta" }, `Modelo: ${ultimo.modelo.split(":").slice(1).join(":")} · detalhe em logs/monitoramento/`));
+  h.append(det);
+}
+
+function dataCurta(iso) {
+  const [a, m, d] = String(iso).split("-");
+  return d && m ? `${d}/${m}` : iso;
 }
 
 async function abrirHistorico(id) {

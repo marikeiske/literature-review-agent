@@ -400,6 +400,22 @@ select {
 .hist-pergunta { font-size: 15px; font-weight: 600; line-height: 1.4; }
 .hist-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .hist-voltar { padding-left: 0; margin: 0 0 12px; }
+.teste-diario {
+  max-width: 72ch; margin: 0 0 24px; padding: 10px 14px;
+  border: 1px solid var(--linha); border-radius: var(--raio); background: var(--aba-fundo);
+}
+.teste-diario summary {
+  cursor: pointer; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 24px; padding: 4px 0;
+}
+.teste-titulo { font-size: 15px; font-weight: 700; }
+.teste-conta { font-size: 13px; color: var(--tinta-suave); }
+.teste-diario .hist-sub { margin: 10px 0 12px; }
+.teste-rolagem { overflow-x: auto; }
+.teste-tabela { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+.teste-tabela th { text-align: left; font-weight: 600; color: var(--tinta-suave); padding: 6px 10px 6px 0; border-bottom: 1px solid var(--linha); }
+.teste-tabela td { padding: 6px 10px 6px 0; border-bottom: 1px solid var(--linha); vertical-align: top; }
+.teste-problema { color: var(--lapis); }
+.teste-diario .hist-meta { margin-top: 10px; }
 .historico .rodada { padding-left: 0; border-bottom: none; }
 .historico .marca-margem { left: -26px; }
 .decisao-legenda { flex-basis: 100%; margin: 0 0 4px; font-size: 12px; color: var(--tinta-suave); }
