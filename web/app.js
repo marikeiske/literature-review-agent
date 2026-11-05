@@ -395,7 +395,7 @@ async function blocoTesteDiario(h) {
       `${dataCurta(ultimo.data)}: ${ultimo.ok ? "tudo certo" : "com problema"}`),
     el("span", { class: "teste-conta" }, `${okDias} de ${dias.length} ${dias.length === 1 ? "dia" : "dias"} sem problema`)));
   det.append(el("p", { class: "hist-sub" },
-    "Uma vez por dia, sem ninguém no teclado: os testes do código, 5 afirmações do gabarito, 1 pergunta negativa e 1 pergunta livre, diferentes a cada dia. Essas perguntas não entram na lista abaixo."));
+    "5 afirmações do gabarito, 1 pergunta negativa e 1 pergunta livre, diferentes a cada dia."));
   const tabela = el("table", { class: "teste-tabela" });
   tabela.append(el("tr", {}, ...["Data", "Testes do código", "Páginas exatas", "Negativa", "Pergunta livre", "Resultado"]
     .map((t) => el("th", { scope: "col" }, t))));
