@@ -1,4 +1,4 @@
-# Números da avaliação (gerado em 2026-10-26 por resumo_avaliacao.py)
+# Números da avaliação (gerado em 2026-11-05 por resumo_avaliacao.py)
 
 Gabarito: 109 afirmações, com a revisão da autora aplicada (revisao_gabarito.csv).
 
@@ -34,6 +34,13 @@ Mesmas afirmações nos dois lados; conta só as que um acertou e o outro errou.
 | Nemotron 3 Ultra (Ollama Cloud) (rag) × Gemma 4 31B (Ollama Cloud) (rag) | 109 | 5 | 2 | 0.453 | não |
 | Nemotron 3 Ultra (Ollama Cloud) (rag) × Gemini Flash-Lite (Google) (rag) | 109 | 9 | 2 | 0.065 | não |
 
+## Suítes de capacidade e regressão (Aula 12, slides 39 e 40)
+
+A partir das 5 rodadas RAG completas (resultados/suites.json):
+
+- Regressão: 92 afirmações que todos os modelos acertaram. Depois de mudar prompt, harness ou modelo, rodar `python avaliar.py <modelo> --suite regressao`: a taxa deve ficar perto de 100%.
+- Capacidade: 17 afirmações que pelo menos um modelo errou (A10-09, A10-10, A11-04, A2-03, A2-08, A2-10, A4-01, A4-08, A5-01, A5-05, A5-08, A7-03, A7-09, A8-01, A8-08, A9-02, A9-06). É aqui que uma melhoria aparece: `--suite capacidade`.
+
 ## Perguntas negativas (12: recusar ou corrigir a premissa)
 
 | Modelo | Acerto automático | Inventou | Recusou sem ler | Revisão humana: Confere / Parcial / Não confere |
@@ -46,12 +53,39 @@ Mesmas afirmações nos dois lados; conta só as que um acertou e o outro errou.
 | GPT-OSS 120B (Ollama Cloud) | 12/12 (100%) | 0 | 1 | 12 / 0 / 0 (de 12 revisadas) |
 | Nemotron 3 Ultra (Ollama Cloud) | 12/12 (100%) | 0 | 0 | 12 / 0 / 0 (de 12 revisadas) |
 
+## Negativas repetidas: pass^k (Aula 12, slide 41)
+
+Cada negativa rodou k vezes nas condições de uso. pass^k: as k tentativas passaram; pass@k: pelo menos uma passou. Para a recusa, a métrica é pass^k.
+
+- ollama_gemma4_31b-cloud: k = 5, perguntas com k tentativas: 12. pass^5: 12/12 (100%) (IC 95% 76–100%); pass@5: 12/12 (100%); tentativas certas: 60/60 (100%). Paradas: aguarda aprovação 30, recusa 20, falha tratada 10
+
+## Caso da sala: test.jsonl da Aula 11, modelo base sem LoRA (grader de código)
+
+Trecho na mensagem, sem busca. Passa: parágrafo citado está no trecho, ou a resposta é exatamente "not in the material."; "ao juiz": recusa com outras palavras (Aula 12, slide 34).
+
+- ollama_gemma4_31b-cloud · 20 linhas, 5 tentativa(s) · citação: pass^5 14/14 (100%) · recusa: pass^5 6/6 (100%) · vereditos: passa 100
+
 ## Revisão de sentido (aval_ollama_nemotron-3-ultra_cloud_rag, amostra de 30, semente 2026)
 
 A página citada sustenta a afirmação? (julgamento humano do conteúdo, não só do número da página)
 
 - Revisadas: 30 de 30. Confere: 30, Parcial: 0, Não confere: 0. Confere: 30/30 (100%), IC 95% 89–100%.
 
+
+## Rubrica binária, um critério por vez (Aula 12, slides 30 e 31)
+
+Passa ou falha em cada critério, sem somar critérios num número só. Na revisão humana, "Parcial" conta como falha.
+
+- **Sustentado** (a frase diz só o que a página citada diz; juiz: a autora, amostra de 30 do Nemotron 3 Ultra (Ollama Cloud)): 30/30 (100%), IC 95% 89–100%.
+- **Citação identificável** (toda página citada foi devolvida por uma ferramenta no mesmo turno; juiz: código, verificador.py; só na condição RAG): Gemini Flash-Lite (Google) 109/109 (100%); GPT-OSS 120B (Groq) 109/109 (100%); Qwen3.8 27B (Groq) 80/80 (100%); Gemma 4 31B (Ollama Cloud) 109/109 (100%); GPT-OSS 120B (Ollama Cloud) 109/109 (100%); Nemotron 3 Ultra (Ollama Cloud) 109/109 (100%).
+- **Recusa** (recusa, ou corrige a premissa, quando o material não sustenta; juiz: a autora, uma tentativa por pergunta; a repetição está em pass^k): Gemini Flash-Lite (Google) (v1) 11/12 (92%); Gemini Flash-Lite (Google) (v2) 11/12 (92%); GPT-OSS 120B (Groq) 12/12 (100%); Qwen3.8 27B (Groq) 10/12 (83%); Gemma 4 31B (Ollama Cloud) 12/12 (100%); GPT-OSS 120B (Ollama Cloud) 12/12 (100%); Nemotron 3 Ultra (Ollama Cloud) 12/12 (100%).
+- **Revisão antes da ação** (nada é gravado sem a decisão humana): garantido pelo fluxo (hitl.py e /api/decisao gravam só depois de "aprovar"; recusa, falha tratada e limite não chamam o humano, tests/test_harness.py); fichamentos gravados nesta máquina: 12.
+
+## Caminho (Aula 12, slide 38), dos logs locais
+
+- Perguntas com resposta do modelo: 874 (fora: 205 com erro do provedor ou sem chamada). Buscas e leituras por pergunta: média 1.3 (0 busca(s): 26, 1 busca(s): 697, 2 busca(s): 80, 3 busca(s): 32, 4 busca(s): 35, 7 busca(s): 3, 8 busca(s): 1).
+- Respondidas sem nenhuma busca: 26 (desde 05/11 param como falha tratada) · trava de tools disparada: 38 · ramo de erro: 0 · pedidos fora da lista permitida: 0.
+- Os logs incluem as rodadas de avaliação e o uso na interface. Ramo de erro e lista permitida só entram nos logs a partir de 05/11/2026.
 
 ## Revisão humana do gabarito (HITL)
 

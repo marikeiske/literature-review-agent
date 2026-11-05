@@ -1,0 +1,101 @@
+﻿linha;tentativa;esperado;veredito;passa;no_trecho;citados;pergunta;resposta;segundos
+0;1;recusa;passa;1;3.2.28;;Why can the software contribution to system risk not rely only on severity and probability?;not in the material;2.6
+1;1;citação;passa;1;3.2.9;3.2.9;What is fielding?;Fielding is placing the system into operational use with units in the field or fleet (Paragraph 3.2.9).;1.7
+2;1;citação;passa;1;3.2.22;3.2.22;What examples of mode does this excerpt give?;Examples of mode include maintenance, test, operation, storage, transport, and demilitarization (Paragraph 3.2.22).;0.6
+3;1;citação;passa;1;3.2.27;3.2.27;What are re-use items?;Re-use items are items previously developed under another program or for a separate application that are used in a program. (Paragraph 3.2.27);0.6
+4;1;citação;passa;1;3.2.39;3.2.39;What is software re-use?;Software re-use is the use of a software package or software module that was previously developed in a software application for a developmental program (Paragraph 3.2.39).;0.7
+5;1;citação;passa;1;3.2.4;3.2.4;Does a COTS item require unique Government modification over the life-cycle?;No, COTS items require no unique Government modifications over the life-cycle of the product. (Paragraph 3.2.4);0.6
+6;1;citação;passa;1;3.2.11;3.2.11;Who makes GFE available to the contractor?;The Government makes GFE available to the contractor (Paragraph 3.2.11).;0.6
+7;1;citação;passa;1;3.2.13;3.2.13;Who develops a GOTS item?;A government agency develops a GOTS item (Paragraph 3.2.13).;0.5
+8;1;citação;passa;1;2.1;2.1;Does this section cover documents that are only recommended as examples?;No, this section does not include documents recommended as examples (Paragraph 2.1).;0.5
+9;1;citação;passa;1;5.1;5.1;Are the individual tasks and Appendices A and B mandatory?;No, they contain optional information. (Paragraph 5.1);1.3
+10;1;citação;passa;1;5.3;5.3;Into how many parts is each task divided?;Each individual task is divided into three parts (Paragraph 5.3).;0.5
+11;1;citação;passa;1;5.3.a;5.3.a;What does a task purpose explain?;A task purpose explains the rationale for performing the task (Paragraph 5.3.a).;0.4
+12;1;citação;passa;1;5.3.c;5.3.c;Who provides the details marked (R)?;The Government provides these details. (Paragraph 5.3.c);0.7
+13;1;citação;passa;1;6.1;6.1;What generic method is this practice intended to provide?;This practice is intended to provide a standard, generic method for the identification, classification, and mitigation of hazards (Paragraph 6.1).;0.6
+14;1;citação;passa;1;6.1;6.1;Besides system safety professionals, who else should use this practice?;Other functional disciplines such as fire protection engineers, occupational health professionals, and environmental engineers should also use this practice (Paragraph 6.1).;0.5
+15;1;recusa;passa;1;3.2.14;;What is the name and description of software control level 1, Autonomous?;not in the material;0.4
+16;1;recusa;passa;1;4.3.2;;Which table defines the software control categories?;not in the material;0.4
+17;1;recusa;passa;1;3.2.25;;Can the failure probability of a single software function be estimated from historical data, as for hardware?;not in the material;0.8
+18;1;recusa;passa;1;1.1;;What is documented when the rigor tasks for the highest software criticality index are incomplete?;not in the material;0.4
+19;1;recusa;passa;1;4.3.5;;Is the software criticality matrix an assessment of risk?;not in the material;0.4
+0;2;recusa;passa;1;3.2.28;;Why can the software contribution to system risk not rely only on severity and probability?;not in the material;0.4
+1;2;citação;passa;1;3.2.9;3.2.9;What is fielding?;Fielding is placing the system into operational use with units in the field or fleet (Paragraph 3.2.9).;1.0
+2;2;citação;passa;1;3.2.22;3.2.22;What examples of mode does this excerpt give?;Examples of mode include maintenance, test, operation, storage, transport, and demilitarization (Paragraph 3.2.22).;0.5
+3;2;citação;passa;1;3.2.27;3.2.27;What are re-use items?;Re-use items are items previously developed under another program or for a separate application that are used in a program. (Paragraph 3.2.27);0.5
+4;2;citação;passa;1;3.2.39;3.2.39;What is software re-use?;Software re-use is the use of a software package or software module that was previously developed in a software application for a developmental program (Paragraph 3.2.39).;0.5
+5;2;citação;passa;1;3.2.4;3.2.4;Does a COTS item require unique Government modification over the life-cycle?;No, COTS items require no unique Government modifications over the life-cycle of the product. (Paragraph 3.2.4);0.6
+6;2;citação;passa;1;3.2.11;3.2.11;Who makes GFE available to the contractor?;The Government makes GFE available to the contractor (Paragraph 3.2.11).;3.2
+7;2;citação;passa;1;3.2.13;3.2.13;Who develops a GOTS item?;A government agency develops a GOTS item (Paragraph 3.2.13).;0.6
+8;2;citação;passa;1;2.1;2.1;Does this section cover documents that are only recommended as examples?;No, this section does not include documents recommended as examples (Paragraph 2.1).;0.5
+9;2;citação;passa;1;5.1;5.1;Are the individual tasks and Appendices A and B mandatory?;No, they contain optional information. (Paragraph 5.1);0.4
+10;2;citação;passa;1;5.3;5.3;Into how many parts is each task divided?;Each individual task is divided into three parts (Paragraph 5.3).;0.4
+11;2;citação;passa;1;5.3.a;5.3.a;What does a task purpose explain?;A task purpose explains the rationale for performing the task (Paragraph 5.3.a).;0.5
+12;2;citação;passa;1;5.3.c;5.3.c;Who provides the details marked (R)?;The Government provides these details. (Paragraph 5.3.c);0.4
+13;2;citação;passa;1;6.1;6.1;What generic method is this practice intended to provide?;This practice is intended to provide a standard, generic method for the identification, classification, and mitigation of hazards (Paragraph 6.1).;0.5
+14;2;citação;passa;1;6.1;6.1;Besides system safety professionals, who else should use this practice?;Other functional disciplines such as fire protection engineers, occupational health professionals, and environmental engineers should also use this practice (Paragraph 6.1).;0.4
+15;2;recusa;passa;1;3.2.14;;What is the name and description of software control level 1, Autonomous?;not in the material;0.4
+16;2;recusa;passa;1;4.3.2;;Which table defines the software control categories?;not in the material;0.4
+17;2;recusa;passa;1;3.2.25;;Can the failure probability of a single software function be estimated from historical data, as for hardware?;not in the material;0.4
+18;2;recusa;passa;1;1.1;;What is documented when the rigor tasks for the highest software criticality index are incomplete?;not in the material;0.4
+19;2;recusa;passa;1;4.3.5;;Is the software criticality matrix an assessment of risk?;not in the material;0.5
+0;3;recusa;passa;1;3.2.28;;Why can the software contribution to system risk not rely only on severity and probability?;not in the material;0.4
+1;3;citação;passa;1;3.2.9;3.2.9;What is fielding?;Fielding is placing the system into operational use with units in the field or fleet (Paragraph 3.2.9).;0.5
+2;3;citação;passa;1;3.2.22;3.2.22;What examples of mode does this excerpt give?;Examples of mode include maintenance, test, operation, storage, transport, and demilitarization (Paragraph 3.2.22).;0.5
+3;3;citação;passa;1;3.2.27;3.2.27;What are re-use items?;Re-use items are items that were previously developed for a separate application or under another program and are then used in a program. (Paragraph 3.2.27);0.5
+4;3;citação;passa;1;3.2.39;3.2.39;What is software re-use?;Software re-use is the use of a software package or software module that was previously developed in a software application for a developmental program (Paragraph 3.2.39).;0.6
+5;3;citação;passa;1;3.2.4;3.2.4;Does a COTS item require unique Government modification over the life-cycle?;No, COTS items require no unique Government modifications over the life-cycle of the product. (Paragraph 3.2.4);0.4
+6;3;citação;passa;1;3.2.11;3.2.11;Who makes GFE available to the contractor?;The Government makes GFE available to the contractor (Paragraph 3.2.11).;0.4
+7;3;citação;passa;1;3.2.13;3.2.13;Who develops a GOTS item?;A government agency develops a GOTS item (Paragraph 3.2.13).;0.4
+8;3;citação;passa;1;2.1;2.1;Does this section cover documents that are only recommended as examples?;No, this section does not include documents recommended as examples (Paragraph 2.1).;0.4
+9;3;citação;passa;1;5.1;5.1;Are the individual tasks and Appendices A and B mandatory?;No, they contain optional information. (Paragraph 5.1);0.4
+10;3;citação;passa;1;5.3;5.3;Into how many parts is each task divided?;Each individual task is divided into three parts (Paragraph 5.3).;0.4
+11;3;citação;passa;1;5.3.a;5.3.a;What does a task purpose explain?;A task purpose explains the rationale for performing the task (Paragraph 5.3.a).;0.4
+12;3;citação;passa;1;5.3.c;5.3.c;Who provides the details marked (R)?;The Government provides these details. (Paragraph 5.3.c);0.4
+13;3;citação;passa;1;6.1;6.1;What generic method is this practice intended to provide?;This practice is intended to provide a standard, generic method for the identification, classification, and mitigation of hazards (Paragraph 6.1).;0.4
+14;3;citação;passa;1;6.1;6.1;Besides system safety professionals, who else should use this practice?;Other functional disciplines such as fire protection engineers, occupational health professionals, and environmental engineers should also use this practice (Paragraph 6.1).;0.5
+15;3;recusa;passa;1;3.2.14;;What is the name and description of software control level 1, Autonomous?;not in the material;0.4
+16;3;recusa;passa;1;4.3.2;;Which table defines the software control categories?;not in the material;0.4
+17;3;recusa;passa;1;3.2.25;;Can the failure probability of a single software function be estimated from historical data, as for hardware?;not in the material;0.4
+18;3;recusa;passa;1;1.1;;What is documented when the rigor tasks for the highest software criticality index are incomplete?;not in the material;0.4
+19;3;recusa;passa;1;4.3.5;;Is the software criticality matrix an assessment of risk?;not in the material;0.4
+0;4;recusa;passa;1;3.2.28;;Why can the software contribution to system risk not rely only on severity and probability?;not in the material;0.6
+1;4;citação;passa;1;3.2.9;3.2.9;What is fielding?;Fielding is placing the system into operational use with units in the field or fleet (Paragraph 3.2.9).;0.4
+2;4;citação;passa;1;3.2.22;3.2.22;What examples of mode does this excerpt give?;Examples of mode include maintenance, test, operation, storage, transport, and demilitarization (Paragraph 3.2.22).;0.5
+3;4;citação;passa;1;3.2.27;3.2.27;What are re-use items?;Re-use items are items previously developed under another program or for a separate application that are used in a program. (Paragraph 3.2.27);0.4
+4;4;citação;passa;1;3.2.39;3.2.39;What is software re-use?;Software re-use is the use of a software package or software module that was previously developed in a software application for a developmental program (Paragraph 3.2.39).;0.6
+5;4;citação;passa;1;3.2.4;3.2.4;Does a COTS item require unique Government modification over the life-cycle?;No, COTS items require no unique Government modifications over the life-cycle of the product. (Paragraph 3.2.4);0.5
+6;4;citação;passa;1;3.2.11;3.2.11;Who makes GFE available to the contractor?;The Government makes GFE available to the contractor (Paragraph 3.2.11).;0.5
+7;4;citação;passa;1;3.2.13;3.2.13;Who develops a GOTS item?;A government agency develops a GOTS item (Paragraph 3.2.13).;0.5
+8;4;citação;passa;1;2.1;2.1;Does this section cover documents that are only recommended as examples?;No, this section does not include documents recommended as examples (Paragraph 2.1).;0.5
+9;4;citação;passa;1;5.1;5.1;Are the individual tasks and Appendices A and B mandatory?;No, they contain optional information. (Paragraph 5.1);0.4
+10;4;citação;passa;1;5.3;5.3;Into how many parts is each task divided?;Each individual task is divided into three parts (Paragraph 5.3).;0.4
+11;4;citação;passa;1;5.3.a;5.3.a;What does a task purpose explain?;A task purpose explains the rationale for performing the task (Paragraph 5.3.a).;0.4
+12;4;citação;passa;1;5.3.c;5.3.c;Who provides the details marked (R)?;The Government provides these details. (Paragraph 5.3.c);0.5
+13;4;citação;passa;1;6.1;6.1;What generic method is this practice intended to provide?;This practice is intended to provide a standard, generic method for the identification, classification, and mitigation of hazards (Paragraph 6.1).;0.4
+14;4;citação;passa;1;6.1;6.1;Besides system safety professionals, who else should use this practice?;Other functional disciplines such as fire protection engineers, occupational health professionals, and environmental engineers should also use this practice (Paragraph 6.1).;0.4
+15;4;recusa;passa;1;3.2.14;;What is the name and description of software control level 1, Autonomous?;not in the material;0.4
+16;4;recusa;passa;1;4.3.2;;Which table defines the software control categories?;not in the material;0.4
+17;4;recusa;passa;1;3.2.25;;Can the failure probability of a single software function be estimated from historical data, as for hardware?;not in the material;0.4
+18;4;recusa;passa;1;1.1;;What is documented when the rigor tasks for the highest software criticality index are incomplete?;not in the material;0.4
+19;4;recusa;passa;1;4.3.5;;Is the software criticality matrix an assessment of risk?;not in the material;0.4
+0;5;recusa;passa;1;3.2.28;;Why can the software contribution to system risk not rely only on severity and probability?;not in the material;1.2
+1;5;citação;passa;1;3.2.9;3.2.9;What is fielding?;Fielding is placing the system into operational use with units in the field or fleet (Paragraph 3.2.9).;0.5
+2;5;citação;passa;1;3.2.22;3.2.22;What examples of mode does this excerpt give?;Examples of mode include maintenance, test, operation, storage, transport, and demilitarization (Paragraph 3.2.22).;0.4
+3;5;citação;passa;1;3.2.27;3.2.27;What are re-use items?;Re-use items are items that were previously developed for a separate application or under another program and are then used in a program. (Paragraph 3.2.27);0.5
+4;5;citação;passa;1;3.2.39;3.2.39;What is software re-use?;Software re-use is the use of a software package or software module that was previously developed in a software application for a developmental program (Paragraph 3.2.39).;0.5
+5;5;citação;passa;1;3.2.4;3.2.4;Does a COTS item require unique Government modification over the life-cycle?;No, COTS items require no unique Government modifications over the life-cycle of the product. (Paragraph 3.2.4);0.5
+6;5;citação;passa;1;3.2.11;3.2.11;Who makes GFE available to the contractor?;The Government makes GFE available to the contractor (Paragraph 3.2.11).;0.5
+7;5;citação;passa;1;3.2.13;3.2.13;Who develops a GOTS item?;A government agency develops a GOTS item (Paragraph 3.2.13).;0.4
+8;5;citação;passa;1;2.1;2.1;Does this section cover documents that are only recommended as examples?;No, this section does not include documents recommended as examples (Paragraph 2.1).;0.4
+9;5;citação;passa;1;5.1;5.1;Are the individual tasks and Appendices A and B mandatory?;No, they contain optional information. (Paragraph 5.1);0.4
+10;5;citação;passa;1;5.3;5.3;Into how many parts is each task divided?;Each individual task is divided into three parts (Paragraph 5.3).;0.4
+11;5;citação;passa;1;5.3.a;5.3.a;What does a task purpose explain?;A task purpose explains the rationale for performing the task (Paragraph 5.3.a).;0.4
+12;5;citação;passa;1;5.3.c;5.3.c;Who provides the details marked (R)?;The Government provides these details. (Paragraph 5.3.c);0.4
+13;5;citação;passa;1;6.1;6.1;What generic method is this practice intended to provide?;This practice is intended to provide a standard, generic method for the identification, classification, and mitigation of hazards (Paragraph 6.1).;0.8
+14;5;citação;passa;1;6.1;6.1;Besides system safety professionals, who else should use this practice?;Other functional disciplines such as fire protection engineers, occupational health professionals, and environmental engineers should also use this practice (Paragraph 6.1).;0.6
+15;5;recusa;passa;1;3.2.14;;What is the name and description of software control level 1, Autonomous?;not in the material;0.4
+16;5;recusa;passa;1;4.3.2;;Which table defines the software control categories?;not in the material;0.4
+17;5;recusa;passa;1;3.2.25;;Can the failure probability of a single software function be estimated from historical data, as for hardware?;not in the material;0.4
+18;5;recusa;passa;1;1.1;;What is documented when the rigor tasks for the highest software criticality index are incomplete?;not in the material;0.4
+19;5;recusa;passa;1;4.3.5;;Is the software criticality matrix an assessment of risk?;not in the material;0.4
