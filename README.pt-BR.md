@@ -23,6 +23,15 @@ não está na página, ✗ página não lida ou recusa sem ler nada, ! frase sem
 **Histórico**: as perguntas anteriores, lidas dos logs, com a decisão que cada uma recebeu.
 **Revisar**: a revisão humana da avaliação (abaixo).
 
+## Teste diário até a apresentação
+
+`teste_diario.py` confere uma vez por dia que a mesa funciona de ponta a ponta: os testes do código,
+5 afirmações do gabarito, 1 pergunta negativa e 1 pergunta livre, todas diferentes a cada dia
+(8 dias, de 05/11 a 12/11). Os modelos gratuitos mudam sem aviso; assim a quebra aparece no dia,
+não na demo. `scripts/agendar_teste_diario.ps1` agenda no Windows (10h13; se o notebook estiver
+desligado, roda quando ligar). O resultado fica em `logs/monitoramento/resumo.md` (fora do git) e
+aparece num aviso do Windows. Na sessão do agente, a execução vem marcada como `origem: teste_diario`.
+
 ## Abrir pelo celular (opcional)
 
 O notebook precisa ficar ligado com a interface aberta. O acesso passa pelo
