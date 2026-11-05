@@ -18,7 +18,8 @@ A interface tem três abas. **Perguntar**: escreva a pergunta embaixo, acompanhe
 agente fez, clique numa etiqueta de página para abrir o PDF ao lado (com os números da frase
 grifados) e decida:
 **Aprovar e salvar** grava em `fichamentos/`, **Pedir correção** devolve ao agente,
-**Rejeitar** só registra no log. Na margem: ✓ página lida e números conferem, ? número que
+**Rejeitar** só registra no log. Os botões só aparecem quando há citação para aprovar: na recusa,
+na falha tratada e no limite, a mesa mostra o motivo da parada (veja "Paradas do ciclo"). Na margem: ✓ página lida e números conferem, ? número que
 não está na página, ✗ página não lida ou recusa sem ler nada, ! frase sem página.
 **Histórico**: as perguntas anteriores, lidas dos logs, com a decisão que cada uma recebeu.
 **Revisar**: a revisão humana da avaliação (abaixo).
@@ -77,12 +78,35 @@ python -m agente.corpus
 |---|---|---|
 | Groq (padrão) | `openai/gpt-oss-120b` | 200 mil tokens/dia e 8 mil tokens/minuto por modelo |
 | Gemini | `gemini-flash-lite-latest` | plano gratuito do AI Studio; limites por modelo, ver no AI Studio |
-| OpenRouter | `nvidia/nemotron-3-ultra-550b-a55b:free` | 50 requisições/dia sem comprar créditos (o Super saiu do ar em 20/10) |
+| OpenRouter | `nvidia/nemotron-3-ultra-550b-a55b:free` | 50 requisições/dia sem comprar créditos (o Super saiu do ar em 20/10); fora da interface desde 05/11 por não ter sido avaliado, continua no terminal (`/model openrouter`) |
 | Ollama Cloud | `gemma4:31b-cloud`, `gpt-oss:120b-cloud`, `nemotron-3-ultra:cloud` (o `minimax-m3.1-flash:cloud` saiu do plano gratuito em 23/10) | plano gratuito com limite por sessão (5 h) e por semana; precisa do Docker aberto e da conta conectada (`docker exec -it ollama-novo ollama signin`) |
 | Ollama (local) | `bonsai-2:4b` | fora da interface desde 26/10: lê o prompt a ~3,7 tokens/s na CPU (21/10), inviável; continua acessível pelo terminal (`/model ollama`) |
 
 Dentro do agente, troque com `/model groq`, `/model gemini`, `/model openrouter` ou `/model ollama:qwen2.5:1.5b`.
 Para ver os modelos gratuitos do momento: `python listar_modelos.py`.
+
+## Resultados
+
+Todos os números saem de `resultados/resumo_numeros.md`, gerado por `python resumo_avaliacao.py`.
+
+Página exata citada contra o gabarito revisado, RAG agêntico, temperatura 0 (rodadas de 20 a 26/10/2026):
+
+| Modelo (provedor) | Página exata | IC 95% (Wilson) | Citou página não lida |
+|---|---|---|---|
+| Nemotron 3 Ultra (Ollama Cloud) | 106/109 (97%) | 92–99% | 0 |
+| GPT-OSS 120B (Groq) | 104/109 (95%) | 90–98% | 0 |
+| GPT-OSS 120B (Ollama Cloud) | 104/109 (95%) | 90–98% | 0 |
+| Gemma 4 31B (Ollama Cloud) | 103/109 (94%) | 89–97% | 0 |
+| Gemini Flash-Lite (Google) | 99/109 (91%) | 84–95% | 0 |
+
+- Nenhuma diferença entre modelos é estatisticamente significativa (melhor × pior: McNemar p = 0,065).
+- **Negativas:** 12/12 pela regra automática nos cinco modelos acima. Na sua revisão, com rubrica
+  binária ("Parcial" conta como falha), o Gemini fica com 11/12 e os outros com 12/12.
+- **pass^5 (05/11):** cada negativa 5 vezes no Gemma 4 31B, 12/12 (IC 95% 76–100%, regra automática).
+  Cada pergunta teve a mesma parada nas 5 tentativas: 30 aguarda aprovação, 20 recusa, 10 falha tratada.
+- **Caso da Aula 11 (05/11):** `test.jsonl`, trecho na mensagem, modelo base sem LoRA, 5 tentativas:
+  o Gemma 4 citou parágrafo do trecho em 14/14 e recusou em 6/6, em todas as tentativas.
+- **Suítes:** 92 afirmações que todos os modelos acertaram (regressão) e 17 que algum errou (capacidade).
 
 ## Avaliação (resultado principal do artigo)
 
@@ -96,7 +120,11 @@ python avaliar.py groq --suite capacidade       só as afirmações que algum mo
 python avaliar.py groq --suite regressao        só as que todos acertaram: depois de mudar algo, deve ficar perto de 100%
 python -m experimentos.aula11_norma groq        test.jsonl da Aula 11 com grader de código (dados em dados/aula11/)
 python revisar_negativas.py                     exporta a sua revisão das negativas para planilha
+python resumo_avaliacao.py                      recalcula todos os números (IC, McNemar, pass^k, rubrica, caminho, suítes)
 ```
+
+O conjunto da Aula 11 é material da disciplina e não vai para o repositório: os três arquivos
+(`train.jsonl`, `valid.jsonl`, `test.jsonl`) ficam em `dados/aula11/`, pasta fora do git.
 
 ## Paradas do ciclo (Aula 12)
 
@@ -143,13 +171,15 @@ Outros testes: `python teste_rapido.py groq "pergunta"` e `python -m experimento
 ```
 pip install -r requirements-dev.txt
 python -m playwright install chromium     (uma vez, para os testes de interface)
-pytest                      verificador, leitura de páginas, segurança do servidor, estatística e interface
+pytest                      verificador, paradas e lista permitida do harness, leitura de páginas, segurança do servidor, estatística e interface
 ruff check .                lint
 python -m pip_audit -r requirements.txt
 ```
 
-O GitHub Actions (`.github/workflows/testes.yml`) roda os três a cada envio. Os testes não
-precisam do corpus nem de chaves. Os de interface (`tests/ui`, Playwright) montam uma cópia do projeto
+O GitHub Actions (`.github/workflows/testes.yml`) roda os três a cada envio, numa máquina
+`ubuntu-24.04` fixa: no `ubuntu-latest`, que virou 26.04 em 05/11, o Playwright 1.56 não instala o
+Chromium. Os testes não precisam do corpus nem de chaves. `tests/test_harness.py` roda o loop com um
+modelo falso, sem rede, e confere as três paradas, o limite e a lista permitida. Os de interface (`tests/ui`, Playwright) montam uma cópia do projeto
 com PDFs sintéticos numa pasta temporária e sobem o servidor na porta 8790+, então não mexem nos seus
 arquivos nem na interface aberta. `tests/ui/test_acessibilidade.py` passa o axe-core (WCAG 2.1 AA, temas claro
 e escuro) nas três abas e confere teclado e foco: atalhos, Esc, setas nas abas, tela de 320 px.
@@ -161,6 +191,8 @@ e escuro) nas três abas e confere teclado e foco: atalhos, Esc, setas nas abas,
   pareadas (McNemar exato).
 - Cada rodada do `avaliar.py` grava em `resultados/execucoes.jsonl` o commit, o hash do system
   prompt e do gabarito revisado, as versões e os parâmetros.
+- `resultados/suites.json` (gerado pelo resumo) separa as suítes de capacidade e de regressão usadas
+  por `avaliar.py --suite`.
 - Os PDFs não estão no repositório. `corpus/FONTES.md` diz de onde vem cada um e traz o SHA-256;
   `python corpus_fontes.py --conferir` confere os PDFs baixados.
 
@@ -171,7 +203,8 @@ mais `/chamadas`, que conta as requisições).
 
 ## Onde fica cada coisa
 
-- `logs/` — um arquivo por sessão com cada chamada, tool, verificação e decisão sua.
+- `logs/` — um arquivo por sessão com cada chamada, tool, verificação, parada e decisão sua.
+- `dados/aula11/` — conjunto da Aula 11 (fora do git).
 - `fichamentos/` — os fichamentos que você aprovou.
 - `AGENTS.md` — regras do projeto e mapa dos arquivos.
 - `skills/fichamento/SKILL.md` — instruções carregadas quando você pede o fichamento de um artigo.
