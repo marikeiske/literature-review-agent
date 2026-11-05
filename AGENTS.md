@@ -32,6 +32,11 @@ que grounding, evals, harness e HITL mitigam (Semana 2, p. 52).
   dados (Gemini gratuito). Ver "Segurança e privacidade" no README.
 - Toda mudança de comportamento do agente que o artigo vai citar precisa ficar visível no log
   (`logs/*.jsonl`).
+- Todo turno termina com um evento `parada` no log (`agente/parada.py`). Recusa, falha tratada e
+  limite não chamam o humano; só "aguarda aprovação" leva ao gate. Ferramenta nova entra em
+  `DEFINICOES` e, por consequência, em `PERMITIDAS`; nenhuma outra é executada.
+- O conjunto de dados da Aula 11 (`data.zip`) é material da disciplina: fica em `dados/aula11/`,
+  fora do git.
 - O system prompt está congelado para a avaliação completa (desde 19/10, com a regra da premissa).
   Mudou o prompt, roda a avaliação de novo e versiona os resultados (`_v2`, `_v3`).
 - Decisão humana sobre o gabarito vale pelo `revisao_gabarito.csv`, não pela coluna Status da planilha.
@@ -66,6 +71,7 @@ python main.py       (terminal)
 | `agente/harness.py` | System prompt e loop agêntico |
 | `agente/verificador.py` | Checagem determinística das citações |
 | `agente/hitl.py` | Gate humano e gravação do fichamento |
+| `agente/parada.py` | Motivo de parada do ciclo (Aula 12): aguarda aprovação, objetivo cumprido, rejeitada, recusa, falha tratada, limite |
 | `skills/` | Skills carregadas sob demanda pelo agente |
 | `app.py`, `web/` | Interface no navegador: abas Perguntar, Histórico e Revisar; `abrir_agente.bat` abre com dois cliques |
 | `web/vendor/` | PDF.js 4.10.38 (Apache-2.0), empacotado para grifar a página do PDF sem depender de CDN |
@@ -80,7 +86,9 @@ python main.py       (terminal)
 | `resumo_avaliacao.py` | Recalcula todos os números da avaliação a partir dos CSVs e grava `resultados/resumo_numeros.md` (fonte dos números do artigo) |
 | `revisar_negativas.py` | Exporta a revisão das negativas para planilha (`resultados/revisao_*.xlsx`) |
 | `gabarito-corpus-avaliacao.xlsx` | Gabarito: 109 afirmações com página (77 dos artigos + 32 de aviônica), a revisar pela autora |
-| `experimentos/` | Experimentos citados no artigo (idioma, pergunta-armadilha) |
+| `experimentos/` | Experimentos citados no artigo (idioma, pergunta-armadilha, caso da sala da Aula 11 em `aula11_norma.py`) |
+| `resultados/suites.json` | Suítes de capacidade e regressão, geradas por `resumo_avaliacao.py` (usar com `avaliar.py --suite`) |
+| `resultados/negk_*.csv` | Negativas repetidas k vezes (`avaliar.py --negativas --repeticoes K`): pass^k |
 | `teste_rapido.py` | Uma pergunta, sem gate humano, para comparar modelos |
 | `listar_modelos.py` | Modelos gratuitos disponíveis no momento |
 | `resultados/` | CSVs dos experimentos e da avaliação (versionar: são a evidência do artigo) |
@@ -120,6 +128,12 @@ python main.py       (terminal)
 | 28/10 | No Windows, dois servidores abriam a mesma porta (SO_REUSEADDR do Python): pedidos de teste podiam cair na interface de verdade | `SO_EXCLUSIVEADDRUSE` no Windows; testes de interface em porta própria (8790+) | `app.py` (`ServidorLocal`), `tests/ui/conftest.py` |
 | 29/10 | Auditoria WCAG 2.1 AA achou 18 problemas: página do PDF sem acesso por teclado, bordas de campo com 1,3:1, atalhos 1/2/3 valendo na página toda, foco invisível na caixa de pergunta, 320 px com rolagem lateral | Correções em `web/`; atalhos só com foco no cartão; Esc fecha a página; setas nas abas. Toda mudança de tela passa no axe sem violação | `web/`, `tests/ui/test_acessibilidade.py` |
 | 29/10 | A autora quer usar a mesa pelo celular, longe do notebook; abrir a porta no Wi-Fi exporia as chaves e o corpus sem senha | Modo remoto opcional: servidor só no endereço do Tailscale, código de acesso do `.env`, cookie HttpOnly derivado do código, bloqueio após 5 erros | `app.py` (`abrir_remoto`), `seguranca.py`, `web/entrar.*`, `tests/ui/test_remoto.py` |
+| 05/11 | O trace não dizia por que o ciclo acabou (Aula 12, slide 28) | Evento `parada` em todo turno, com páginas lidas, buscas, trava e pedidos negados | `agente/parada.py`, `agente/harness.py` (`fechar_turno`), teste: `tests/test_harness.py` |
+| 05/11 | Busca vazia ainda deixava o modelo redigir, e a pessoa era chamada a aprovar (Aula 12, slides 18 e 23) | Ramo de erro: sem página lida, falha tratada; com o orçamento esgotado e nada lido, o harness nem pede a resposta | `agente/harness.py`, `agente/parada.py`, `app.py` |
+| 05/11 | A ferramenta era achada por `getattr`: o nome `_init__` executava `__init__` e zerava as evidências (Aula 12, slide 17) | Lista permitida explícita e "Permissão negada"; erro dentro da ferramenta vira estado | `agente/tools.py` (`PERMITIDAS`) |
+| 05/11 | Pedir correção zerava as páginas lidas: a frase reescrita sem nova busca virava "página não lida" | Turno de correção mantém as evidências | `agente/harness.py` (`responder(correcao=True)`), `app.py` |
+| 05/11 | A recusa era avaliada uma vez por pergunta (Aula 12, slide 41) | `--repeticoes K` e pass^k no resumo | `avaliar.py`, `resumo_avaliacao.py` |
+| 05/11 | Revisão das negativas com meio-termo ("Parcial") e critérios somados (Aula 12, slide 30) | Rubrica binária por critério no resumo: "Parcial" conta como falha | `resumo_avaliacao.py` |
 
 ## Quando uma falha se repetir
 

@@ -23,6 +23,7 @@ Uso:
   python avaliar.py groq --artigos Nimbekar2023 Mzid2024
   python avaliar.py groq --por-artigo 3           piloto: 3 afirmações de cada artigo
   python avaliar.py groq --negativas              perguntas cuja resposta certa é recusar
+  python avaliar.py groq --negativas --repeticoes 5   cada negativa 5 vezes: pass^5 (Aula 12, slide 41)
   python avaliar.py groq --so-resumo              refaz o resumo com o gabarito revisado, sem gastar cota
 
 Se a cota acabar no meio, rode o mesmo comando de novo: ele continua de onde parou.
@@ -314,6 +315,55 @@ def avaliar_negativas(agente: Agente, nome: str, limite: int | None):
     print(f"Resultados: {arquivo}")
 
 
+# ---------- pass^k: a recusa tem de sair toda vez (Aula 12, slide 41) ----------
+CAMPOS_NEGK = ["id", "tentativa", "tipo", "modo", "acerto", "recusou", "corrigiu", "inventou", "recusa_sem_ler",
+               "falha_verificador", "parada", "chamadas", "segundos", "resposta"]
+
+
+def avaliar_negativas_k(agente: Agente, nome: str, k: int, limite: int | None):
+    """Roda cada negativa k vezes, nas mesmas condições do uso (temperatura 0, mesmo prompt).
+
+    pass^k: a pergunta passa só se as k tentativas passarem. pass@k: pelo menos uma passou.
+    Grava resultados/negk_<modelo>.csv, uma linha por (pergunta, tentativa); se a cota acabar,
+    o mesmo comando continua de onde parou. A pontuação é a mesma de --negativas."""
+    from negativas import NEGATIVAS
+    import resumo_avaliacao
+    arquivo = RAIZ / "resultados" / f"negk_{nome}.csv"
+    feitas = set()
+    if arquivo.exists():
+        with open(arquivo, encoding="utf-8-sig") as f:
+            feitas = {(l["id"], int(l["tentativa"])) for l in csv.DictReader(f, delimiter=";")}
+    pendentes = [(n, t) for t in range(1, k + 1) for n in NEGATIVAS if (n["id"], t) not in feitas][:limite]
+    novo = not arquivo.exists()
+    with open(arquivo, "a", newline="", encoding="utf-8-sig") as f:
+        w = csv.DictWriter(f, fieldnames=CAMPOS_NEGK, delimiter=";")
+        if novo:
+            w.writeheader()
+        for j, (neg, t) in enumerate(pendentes, 1):
+            inicio = time.time()
+            agente.limpar()
+            try:
+                resposta, chamadas = com_retentativa(agente.responder, neg["pergunta"])
+            except RateLimitError as e:
+                if "too large" in str(e).lower():
+                    print(f"{neg['id']}#{t}: pedido grande demais para o limite do plano gratuito; pulando.")
+                    continue
+                print("Cota esgotada. Rode o mesmo comando mais tarde para continuar.")
+                break
+            except APIStatusError as e:
+                print(f"{neg['id']}#{t}: erro do provedor ({e.status_code}); pulando.")
+                continue
+            evid = dict(agente.ferramentas.evidencias)
+            linha = {"id": neg["id"], "tentativa": t, "tipo": neg["tipo"], "modo": neg["modo"], "chamadas": chamadas,
+                     "segundos": round(time.time() - inicio, 1), "parada": agente.fechar_turno(resposta)["parada"],
+                     "resposta": resposta.replace("\n", " ")[:2000], **pontuar_negativa(neg, resposta, evid)}
+            w.writerow(linha)
+            f.flush()
+            print(f"[{j}/{len(pendentes)}] {neg['id']} tentativa {t} {'ACERTO' if linha['acerto'] else 'erro'} · parada: {linha['parada']}")
+    print("\n" + resumo_avaliacao.texto_pass_k(arquivo, k))
+    print(f"Resultados: {arquivo}")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("modelo", help="ex.: groq, openrouter, ollama:qwen2.5:1.5b")
@@ -325,6 +375,10 @@ def main():
                     help="não chama o modelo: só refaz o resumo com o gabarito revisado de hoje")
     ap.add_argument("--negativas", action="store_true",
                     help="avalia as perguntas negativas (negativas.py) em vez das afirmações do gabarito")
+    ap.add_argument("--suite", choices=["capacidade", "regressao"], default=None,
+                    help="só as afirmações dessa suíte (resultados/suites.json, gerado por resumo_avaliacao.py)")
+    ap.add_argument("--repeticoes", type=int, default=None,
+                    help="com --negativas: roda cada pergunta K vezes e calcula pass^K e pass@K")
     args = ap.parse_args()
 
     agente = Agente()
@@ -332,10 +386,22 @@ def main():
     (RAIZ / "resultados").mkdir(exist_ok=True)
     if args.negativas:
         nome = re.sub(r"[^a-zA-Z0-9.-]+", "_", agente.rotulo)
+        if args.repeticoes:
+            arq_k = RAIZ / "resultados" / f"negk_{nome}.csv"
+            with execucao_exclusiva(arq_k):
+                registrar_execucao(agente, f"negativas_pass^{args.repeticoes}", "rag", arq_k)
+                return avaliar_negativas_k(agente, nome, args.repeticoes, args.limite)
         with execucao_exclusiva(RAIZ / "resultados" / f"neg_{nome}.csv"):
             registrar_execucao(agente, "negativas", "rag", RAIZ / "resultados" / f"neg_{nome}.csv")
             return avaliar_negativas(agente, nome, args.limite)
     itens = carregar_gabarito(args.artigos)
+    sufixo = ""
+    if args.suite:
+        suites = json.loads((RAIZ / "resultados" / "suites.json").read_text(encoding="utf-8"))
+        ids = set(suites[args.suite])
+        itens = [i for i in itens if i["id"] in ids]
+        sufixo = f"_{args.suite}"
+        print(f"Suíte {args.suite}: {len(itens)} afirmações (suites.json de {suites['gerado_em']})")
     # Ordem intercalada: um item de cada documento por vez, alternando início, meio e fim.
     # Como a cota gratuita acaba no meio, o que já rodou em cada dia é uma amostra equilibrada
     # (todos os documentos e posições), e não só os primeiros artigos da planilha.
@@ -358,7 +424,8 @@ def main():
     nome = re.sub(r"[^a-zA-Z0-9.-]+", "_", agente.rotulo)
     pasta = RAIZ / "resultados"
     pasta.mkdir(exist_ok=True)
-    arquivo = pasta / f"aval_{nome}_{args.condicao}.csv"
+    # A suíte grava em arquivo próprio: não mistura com a rodada completa de 109
+    arquivo = pasta / (f"aval_{nome}_{args.condicao}.csv" if not sufixo else f"suite_{nome}_{args.condicao}{sufixo}.csv")
     with execucao_exclusiva(arquivo):
         if not args.so_resumo:
             registrar_execucao(agente, "afirmacoes", args.condicao, arquivo)

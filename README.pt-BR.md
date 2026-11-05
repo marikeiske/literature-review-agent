@@ -82,8 +82,29 @@ python avaliar.py groq --por-artigo 3           piloto: 33 afirmações (3 por d
 python avaliar.py groq                          as 109 afirmações do gabarito
 python avaliar.py groq --condicao contexto      sem RAG: artigo inteiro no prompt
 python avaliar.py groq --negativas              12 perguntas em que o certo é recusar ou corrigir
+python avaliar.py groq --negativas --repeticoes 5    cada negativa 5 vezes: pass^5 (Aula 12, slide 41)
+python avaliar.py groq --suite capacidade       só as afirmações que algum modelo errou (Aula 12, slide 39)
+python avaliar.py groq --suite regressao        só as que todos acertaram: depois de mudar algo, deve ficar perto de 100%
+python -m experimentos.aula11_norma groq        test.jsonl da Aula 11 com grader de código (dados em dados/aula11/)
 python revisar_negativas.py                     exporta a sua revisão das negativas para planilha
 ```
+
+## Paradas do ciclo (Aula 12)
+
+Cada pergunta termina com um motivo de parada, gravado no log (`agente/parada.py`):
+
+| Parada | Quando | A pessoa é chamada? |
+|---|---|---|
+| aguarda aprovação | há frase com página | sim: a citação fica retida até a decisão |
+| objetivo cumprido | a pessoa aprovou e o fichamento foi gravado | — |
+| rejeitada | a pessoa rejeitou | — |
+| recusa | leu o material e respondeu "Não consta no material aberto." | não: não há citação pendente |
+| falha tratada | nenhuma página foi lida (busca vazia, erro de ferramenta, ou resposta sem buscar) | não: nenhuma afirmação é entregue; o rascunho fica só no log |
+| limite | 12 ciclos sem resposta final | não |
+
+O harness só executa as ferramentas da lista permitida (`agente/tools.py`, `PERMITIDAS`); outro nome
+recebe "Permissão negada" e nada é executado. Pedir correção mantém as páginas já lidas na pergunta.
+A avaliação (`avaliar.py`) continua pontuando o texto que o modelo escreveu, como nas rodadas de outubro.
 
 ## Revisão humana (aba Revisar)
 

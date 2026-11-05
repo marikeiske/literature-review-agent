@@ -14,7 +14,8 @@ the evaluation below.
 
 1. **Agentic RAG.** The model gets read-only tools (`buscar_trechos`, BM25 search over page
    snippets; `ler_pagina`; `listar_artigos`; `carregar_skill`) and decides what to read. A budget of
-   4 tool calls per question stops search loops (`agente/harness.py`).
+   4 tool calls per question stops search loops (`agente/harness.py`). The harness only runs tools
+   on an explicit allow-list; any other name gets a permission error and nothing runs.
 2. **One claim per line, with `[DocId p.N]`.** The system prompt requires a citation on every
    line, an explicit refusal ("Não consta no material aberto.") when the data is missing, and a
    correction ("A premissa não confere: …", with a citation) when the question's premise is false.
@@ -25,6 +26,10 @@ the evaluation below.
 4. **Human in the loop.** The web UI opens the cited PDF page next to the answer, with the numbers
    highlighted. The reviewer approves, asks for a correction or rejects; only approval writes a note
    to `fichamentos/` (`agente/hitl.py`).
+5. **Stop reason in the trace** (`agente/parada.py`). Every turn ends with one of: *awaiting
+   approval*, *goal met* (approved), *rejected*, *refusal* (nothing to approve, the human is not
+   called), *handled failure* (no page was read: no claim is shown and the human is not called) or
+   *limit*. The trace in `logs/` holds the question, tool calls, returned passages, answer and stop.
 
 ## Results (109 gold claims, 11 documents)
 
@@ -73,6 +78,10 @@ Or double-click `abrir_agente.bat`. Free providers only: Groq, Google AI Studio,
 python avaliar.py groq                       109 gold claims (resumes where it stopped)
 python avaliar.py groq --condicao contexto   no RAG: whole paper in the prompt
 python avaliar.py groq --negativas           12 questions whose right answer is to refuse or correct
+python avaliar.py groq --negativas --repeticoes 5   each one 5 times: pass^5 (the refusal must hold every time)
+python avaliar.py groq --suite capacidade    only the claims some model got wrong (capability suite)
+python avaliar.py groq --suite regressao     only the claims every model got right (regression suite)
+python -m experimentos.aula11_norma groq     the course's test.jsonl (Lesson 11) with a code grader
 python resumo_avaliacao.py                   all numbers, CIs and McNemar tests from the CSVs
 ```
 

@@ -18,3 +18,32 @@ def test_mcnemar_exato():
 
 def test_mcnemar_sem_discordancia():
     assert r.mcnemar({1: 1, 2: 0}, {1: 1, 2: 0})[3] == 1.0
+
+
+def test_pass_k():
+    # N01 passa nas 3; N02 passa em 1 de 3; N03 só tem 2 tentativas e fica de fora
+    t = {"N01": [1, 1, 1], "N02": [0, 1, 0], "N03": [1, 1]}
+    assert r.pass_k(t, 3) == (2, 1, 2)
+    assert r.pass_k(t, 2) == (3, 2, 3)
+
+
+def test_parcial_conta_como_falha():
+    revs = {"N01": {"status": "Confere"}, "N02": {"status": "Parcial"}, "N03": {"status": "Não confere"}, "N04": {}}
+    assert r.binario_humano(revs, ["N01", "N02", "N03", "N04"]) == (1, 3)
+
+
+def test_caminho_dos_logs(tmp_path):
+    import json
+    eventos = [{"tipo": "pergunta"}, {"tipo": "tool", "nome": "buscar_trechos"}, {"tipo": "tool", "nome": "listar_artigos"},
+               {"tipo": "pergunta"}, {"tipo": "tool", "nome": "buscar_trechos"}, {"tipo": "tool", "nome": "ler_pagina"},
+               {"tipo": "trava"}, {"tipo": "ramo_de_erro"}]
+    (tmp_path / "sessao_x.jsonl").write_text("\n".join(json.dumps(e) for e in eventos), encoding="utf-8")
+    c = r.caminho_dos_logs(tmp_path)
+    assert c["perguntas"] == 2 and c["distribuicao"] == {1: 1, 2: 1} and c["trava"] == 1 and c["ramo_de_erro"] == 1
+
+
+def test_separar_suites():
+    rodadas = {("A", "rag"): {"x": 1, "y": 0, "z": 1}, ("B", "rag"): {"x": 1, "y": 1, "z": 0},
+               ("A", "contexto"): {"x": 0, "y": 0, "z": 0}, ("C", "rag"): {"x": 0}}  # C incompleta: fica de fora
+    s = r.separar_suites(rodadas, ["x", "y", "z"])
+    assert s == {"rodadas_usadas": 2, "capacidade": ["y", "z"], "regressao": ["x"]}
