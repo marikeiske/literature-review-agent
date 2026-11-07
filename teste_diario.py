@@ -31,7 +31,6 @@ import sys
 import time
 import urllib.request
 from datetime import date
-from pathlib import Path
 
 from openai import APIStatusError, APITimeoutError, APIConnectionError, RateLimitError
 
@@ -94,13 +93,16 @@ def garantir_ollama(log: list[str]) -> bool:
         return True
     log.append("Ollama não respondeu; tentando ligar o Docker")
     if not _rodar(["docker", "info"], 30):
-        exe = Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "Docker" / "Docker" / "Docker Desktop.exe"
-        if exe.exists():
-            subprocess.Popen([str(exe)])
-        for _ in range(36):  # até 3 minutos
-            time.sleep(5)
+        # 07/11: o Docker Desktop travava ao abrir por causa de um engine.sock antigo. O script de
+        # conserto fecha o Docker travado, renomeia as pastas de conexão (não apaga) e abre de novo.
+        conserto = RAIZ / "scripts" / "consertar_docker.ps1"
+        if conserto.is_file():
+            _rodar(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(conserto)], 360)
+            log.append("Docker não respondia; rodou scripts/consertar_docker.ps1")
+        for _ in range(24):  # mais 2 minutos de folga
             if _rodar(["docker", "info"], 30):
                 break
+            time.sleep(5)
     _rodar(["docker", "start", "ollama-novo"], 60)
     for _ in range(12):
         time.sleep(5)
@@ -115,8 +117,12 @@ def testes_do_codigo() -> dict:
     inicio = time.time()
     try:
         r = subprocess.run([sys.executable, "-X", "utf8", "-m", "pytest", "tests", "-q", "-p", "no:cacheprovider"],
-                           cwd=RAIZ, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=900)
+                           cwd=RAIZ, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=900,
+                           env={k: v for k, v in os.environ.items() if not k.startswith("MESA_")})  # testes sem o .env
         ultima = [x for x in r.stdout.strip().splitlines() if x.strip()][-1:] or ["sem saída"]
+        if r.returncode != 0:  # guarda a saída inteira para achar a causa (07/11: 19 erros só no agendador)
+            PASTA.mkdir(parents=True, exist_ok=True)
+            (PASTA / f"{date.today().isoformat()}_pytest.txt").write_text(r.stdout + r.stderr, encoding="utf-8")
         return {"ok": r.returncode == 0, "resumo": ultima[0].strip(" ="), "segundos": round(time.time() - inicio)}
     except subprocess.TimeoutExpired:
         return {"ok": False, "resumo": "passou de 15 minutos", "segundos": 900}
@@ -198,7 +204,12 @@ def main():
     ap.add_argument("--modelo", default=MODELO_PADRAO)
     ap.add_argument("--dia", type=int, default=None, help="1 a 8; padrão: o dia de hoje contado a partir de 05/11")
     ap.add_argument("--sem-pytest", action="store_true")
+    ap.add_argument("--so-codigo", action="store_true", help="só os testes do código; não grava o dia")
     args = ap.parse_args()
+    if args.so_codigo:
+        r = testes_do_codigo()
+        print(f"Testes do código: {r['resumo']}")
+        return 0 if r["ok"] else 1
 
     hoje = date.today()
     dia = args.dia or max(1, (hoje - INICIO).days + 1)

@@ -10,9 +10,11 @@ $OutputEncoding = [Text.Encoding]::UTF8
   if ($LASTEXITCODE -eq 0) { "Docker ja esta funcionando. Nada a fazer."; return }
   $procs = Get-Process "Docker Desktop","com.docker.backend","com.docker.build" -ErrorAction SilentlyContinue
   if ($procs) { "Fechando o Docker travado..."; $procs | Stop-Process -Force; Start-Sleep 5 }
-  $ts = Get-Date -Format "yyyyMMdd_HHmm"
+  $ts = Get-Date -Format "yyyyMMdd_HHmmss"
   foreach ($p in "$env:LOCALAPPDATA\Docker\run", "$env:LOCALAPPDATA\docker-secrets-engine") {
     if (Test-Path $p) { Rename-Item $p ((Split-Path $p -Leaf) + "_old_$ts"); "Renomeada: $p" }
+    # 07/11: a pasta continuou la depois de renomear e o Docker caiu de novo; confere antes de abrir
+    if (Test-Path $p) { "ATENCAO: $p continua existindo depois de renomear." }
   }
   "Abrindo o Docker Desktop..."
   Start-Process "$env:LOCALAPPDATA\Programs\DockerDesktop\Docker Desktop.exe"

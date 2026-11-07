@@ -4,7 +4,9 @@
 # Para apagar o agendamento: Unregister-ScheduledTask -TaskName "Mesa de revisao - teste diario"
 $raiz = Split-Path -Parent $PSScriptRoot
 $nome = "Mesa de revisao - teste diario"
-$acao = New-ScheduledTaskAction -Execute "$raiz\teste_diario.bat" -WorkingDirectory $raiz
+# Roda sem janela (conhost --headless): em 06/11 a janela preta foi fechada logo ao abrir e o teste
+# terminou com 0xC000013A (STATUS_CONTROL_C_EXIT) antes de comecar.
+$acao = New-ScheduledTaskAction -Execute "conhost.exe" -Argument "--headless cmd.exe /c `"$raiz\teste_diario.bat`"" -WorkingDirectory $raiz
 $gatilho = New-ScheduledTaskTrigger -Daily -At "10:13"
 $gatilho.EndBoundary = "2026-11-12T23:59:00"
 $config = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `

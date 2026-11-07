@@ -495,15 +495,19 @@ def _ip_tailscale() -> tuple[str, set[str]]:
     """Endereço 100.x deste computador no Tailscale e os nomes dele (MagicDNS). ("", set()) se não houver."""
     nomes = {socket.gethostname().lower()}
     ip = (os.getenv("MESA_IP_REMOTO") or "").strip()
-    try:
-        r = subprocess.run(["tailscale", "status", "--json"], capture_output=True, text=True, timeout=8)
-        eu = json.loads(r.stdout or "{}").get("Self", {})
+    # O instalador do Windows nem sempre põe o tailscale no PATH do terminal já aberto
+    for exe in ("tailscale", r"C:\Program Files\Tailscale\tailscale.exe"):
+        try:
+            r = subprocess.run([exe, "status", "--json"], capture_output=True, text=True, timeout=8)
+            eu = json.loads(r.stdout or "{}").get("Self") or {}
+        except (OSError, ValueError, AttributeError, subprocess.SubprocessError):
+            continue
+        # Com o Tailscale desligado, "TailscaleIPs" vem null (falha de 07/11: derrubava a interface)
         if eu.get("DNSName"):
-            nome = eu["DNSName"].rstrip(".").lower()
+            nome = str(eu["DNSName"]).rstrip(".").lower()
             nomes |= {nome, nome.split(".")[0]}
-        ip = ip or next((x for x in eu.get("TailscaleIPs", []) if "." in x), "")
-    except (OSError, ValueError, subprocess.SubprocessError):
-        pass
+        ip = ip or next((x for x in eu.get("TailscaleIPs") or [] if "." in str(x)), "")
+        break
     if not ip:  # sem o comando tailscale no PATH: procura um 100.x entre os endereços da máquina
         try:
             ends = {i[4][0] for i in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET)}
@@ -564,7 +568,10 @@ def main():
     print(f"Mesa de revisão aberta em {endereco}  (Ctrl+C para encerrar)")
     print(f"Modelo: {agente.rotulo} · log: {agente.arquivo_log}")
     if (os.getenv("MESA_REMOTO") or "").strip().lower() in ("1", "sim", "true"):
-        abrir_remoto(porta)
+        try:
+            abrir_remoto(porta)
+        except Exception as e:  # o acesso pelo celular é opcional: nunca derruba a interface no notebook
+            print(f"Acesso pelo celular desligado por um erro: {type(e).__name__}: {e}")
     if not os.getenv("MESA_SEM_NAVEGADOR"):  # os testes de interface (tests/ui) abrem o próprio navegador
         threading.Timer(0.8, lambda: webbrowser.open(endereco)).start()
     try:

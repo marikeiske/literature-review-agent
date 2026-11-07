@@ -75,7 +75,8 @@ def _montar_copia(destino: Path):
 def servidor(tmp_path_factory):
     pasta = tmp_path_factory.mktemp("mesa")
     _montar_copia(pasta)
-    env = {k: v for k, v in os.environ.items() if not k.endswith(("_API_KEY", "_KEY"))}
+    # Sem chaves e sem o acesso pelo celular do .env (07/11: o teste diário herdava MESA_REMOTO=1)
+    env = {k: v for k, v in os.environ.items() if not k.endswith(("_API_KEY", "_KEY")) and not k.startswith("MESA_")}
     # Porta própria (8790+): nunca disputa com a interface de verdade, que fica em 8765+
     env.update({"MESA_SEM_NAVEGADOR": "1", "MESA_PORTA": "8790", "PROVEDOR": "ollama", "OLLAMA_BASE_URL": "http://127.0.0.1:9/v1",
                 "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1"})
