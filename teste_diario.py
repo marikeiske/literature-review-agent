@@ -16,8 +16,8 @@ Na sessão do agente (logs/sessao_*.jsonl) a primeira linha marca origem "teste_
 para não confundir com uso feito pela autora.
 
 Uso:
-  python teste_diario.py                      o teste do dia, com o Nemotron 3 Ultra (Ollama Cloud)
-  python teste_diario.py --modelo groq        outro modelo
+  python teste_diario.py                      o teste do dia, com o GPT-OSS 120B (Groq), o modelo da demo
+  python teste_diario.py --modelo gemini      outro modelo
   python teste_diario.py --dia 3              força o conjunto do dia 3 (1 a 8)
   python teste_diario.py --sem-pytest         pula os testes do código
 Agendamento: scripts/agendar_teste_diario.ps1.
@@ -43,7 +43,10 @@ INICIO = date(2026, 11, 5)  # dia 1
 DIAS = 8                     # até 12/11, véspera da primeira apresentação
 POR_DIA = 5
 SEMENTE = 20261105
-MODELO_PADRAO = "ollama:nemotron-3-ultra:cloud"  # o modelo da demo (melhor na avaliação de 26/10)
+# O modelo da demo. Até 09/11 era o Nemotron 3 Ultra no Ollama Cloud; em 10/11 o Ollama passou a cobrar
+# por token (erro 402) e a chave gratuita do OpenRouter tinha expirado, então a demo passou ao GPT-OSS 120B
+# no Groq (sem custo, 104/109 na avaliação de 26/10).
+MODELO_PADRAO = "groq"
 PASTA = RAIZ / "logs" / "monitoramento"
 
 # Perguntas livres, no estilo da demo: um documento diferente por dia. Não têm gabarito;
